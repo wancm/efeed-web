@@ -1,4 +1,8 @@
+import BusinessUnit from './../products/types/business-unit';
+
 const sum = (...numbers: number[]) => {
+    const user: BusinessUnit = { code: 'user' };
+
     return numbers.reduce((total, number) => total + number, 0)
 }
 
