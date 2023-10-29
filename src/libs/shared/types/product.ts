@@ -1,23 +1,70 @@
-import { v4 as uuidv4 } from 'uuid';
+import { ObjectId } from 'mongodb';
 import { z } from 'zod';
-import { CurrencySchema } from './currency';
-import { ImageSchema } from './image';
+import { fromZodError } from 'zod-validation-error';
+import { ImageEntitySchema } from './image';
 
-const MainProductSchema = z.object({
-    id: z.string().uuid().default(uuidv4()),
-    code: z.string().max(20).min(3).optional(),
-    name: z.string().max(100).min(3).optional(),
+const MainProductEntitySchema = z.object({
+    id: z.string().optional(),
+    name: z.string().max(100).min(3),
+    code: z.string().max(20).optional(),
     price: z.number().default(0),
-    currency: CurrencySchema,
-    image: ImageSchema
+    currencyCode: z.string().max(3),
+    image: ImageEntitySchema.optional()
 })
 
-const SubProductSchema = z.object({
-    products: z.array(MainProductSchema)
+const SubProductEntitySchema = z.object({
+    products: z.array(MainProductEntitySchema).optional()
 })
 
-export const ProductSchema = MainProductSchema.merge(SubProductSchema);
+export const ProductEntitySchema = MainProductEntitySchema.merge(SubProductEntitySchema);
 
-type Product = z.infer<typeof ProductSchema>
+// Database Entities
+export type ProductEntity = z.infer<typeof ProductEntitySchema>
 
-export default Product;
+// Application DTO
+// cm: reusing entity schema here since both are exactly the same
+export type Product = z.infer<typeof ProductEntitySchema>
+
+export const productConverter = {
+    toEntity(dto: Product): ProductEntity {
+
+        const productEntity = {
+            id: dto.id ?? new ObjectId().toHexString(),
+            name: dto.name,
+            code: dto.code,
+            price: dto.price,
+            currencyCode: dto.currencyCode,
+            image: dto.image
+        };
+
+        const result = ProductEntitySchema.safeParse(productEntity);
+        if (result.success) {
+            return result.data;
+        } else {
+            const zodError = fromZodError(result.error)
+            console.log('validation error', JSON.stringify(zodError))
+            throw new Error('ProductEntitySchema validation error')
+        }
+    },
+
+    toDTO(entity: ProductEntity): Product {
+        const productDTO: Product = {
+            id: entity.id,
+            name: entity.name,
+            code: entity.code,
+            price: entity.price,
+            currencyCode: entity.currencyCode,
+            image: entity.image
+        };
+
+        const result = ProductEntitySchema.safeParse(productDTO);
+        if (result.success) {
+            return result.data;
+        } else {
+            const zodError = fromZodError(result.error)
+            console.log('validation error', JSON.stringify(zodError))
+            throw new Error('ProductEntitySchema validation error')
+        }
+    },
+};
+

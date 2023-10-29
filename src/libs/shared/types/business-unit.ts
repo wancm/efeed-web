@@ -1,18 +1,87 @@
-import { v4 as uuidv4 } from 'uuid';
+import { ObjectId } from 'mongodb';
 import { z } from 'zod';
-import { PersonSchema } from './person';
-import { ShopSchema } from './shop';
+import { fromZodError } from 'zod-validation-error';
+import { util } from '../../utils/util';
+import { mongodbUtil } from './../../core/db/mongodb/mongodb-util';
+import { PersonEntitySchema } from './person';
+import { ProductEntitySchema } from './product';
 
-export const BusinessUnitSchema = z.object({
-    id: z.string().uuid().default(uuidv4()).optional(),
+// https://zzdjk6.medium.com/typescript-zod-and-mongodb-a-guide-to-orm-free-data-access-layers-f83f39aabdf3
+
+export const BusinessUnitEntitySchema = z.object({
+    _id: z.instanceof(ObjectId),
     name: z.string().max(100).min(3),
-    code: z.string().max(20).min(3).optional(),
-    contactPersons: z.array(PersonSchema).optional(),
-    shops: z.array(ShopSchema)
+    code: z.string().max(20).optional(),
+    persons: z.array(PersonEntitySchema).optional(),
+    products: z.array(ProductEntitySchema),
+    shopIds: z.array(z.instanceof(ObjectId)),
+    createdBy: z.string().max(100),
+    createdDate: z.date().default(util.utcNow()),
+    updatedBy: z.string().max(100).optional(),
+    updatedDate: z.date().default(util.utcNow()).optional(),
+    _ts: z.number().default(util.timestampUtcNow())
 })
 
-type BusinessUnit = z.infer<typeof BusinessUnitSchema>
+// Database Entities
+export type BusinessUnitEntity = z.infer<typeof BusinessUnitEntitySchema>
 
-export default BusinessUnit
+// https://zzdjk6.medium.com/typescript-zod-and-mongodb-a-guide-to-orm-free-data-access-layers-f83f39aabdf3
 
+// Application DTO
+export const BusinessUnitDTOSchema = z.object({
+    id: z.string().optional(),
+    name: z.string().nullish(),
+    code: z.string().nullish(),
+    persons: BusinessUnitEntitySchema.shape.persons.nullish(),
+    products: BusinessUnitEntitySchema.shape.products.nullish(),
+    shopIds: z.array(z.string()).optional(),
+});
 
+export type BusinessUnit = z.infer<typeof BusinessUnitDTOSchema>;
+
+export const businessUnitConverter = {
+    toEntity(dto: BusinessUnit): BusinessUnitEntity {
+        const shopIds: ObjectId[] = dto.shopIds && !util.isArrEmpty(dto.shopIds) ?
+            dto.shopIds.map(id => new ObjectId(id)) :
+            [];
+
+        const businessUnitEntity = {
+            _id: mongodbUtil.genId(dto.id),
+            name: dto.name,
+            code: dto.code,
+            persons: dto.persons,
+            products: dto.products,
+            createdBy: '',
+            shopIds
+        };
+
+        const result = BusinessUnitEntitySchema.safeParse(businessUnitEntity);
+        if (result.success) {
+            return result.data;
+        } else {
+            const zodError = fromZodError(result.error)
+            console.log('validation error', JSON.stringify(zodError))
+            throw new Error('BusinessUnitEntitySchema validation error')
+        }
+    },
+
+    toDTO(entity: BusinessUnitEntity): BusinessUnit {
+        const businessUnitDTO: BusinessUnit = {
+            id: entity._id.toHexString(),
+            name: entity.name,
+            code: entity.code,
+            persons: entity.persons,
+            products: entity.products,
+            shopIds: entity.shopIds.map(id => id.toHexString())
+        };
+
+        const result = BusinessUnitDTOSchema.safeParse(businessUnitDTO);
+        if (result.success) {
+            return result.data;
+        } else {
+            const zodError = fromZodError(result.error)
+            console.log('validation error', JSON.stringify(zodError))
+            throw new Error('BusinessUnitDTOSchema validation error')
+        }
+    },
+};

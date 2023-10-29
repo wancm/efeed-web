@@ -1,18 +1,73 @@
+import { ObjectId } from 'mongodb';
 import { z } from 'zod';
-import { ContactSchema } from './contacts';
+import { fromZodError } from 'zod-validation-error';
+import { ContactEntitySchema, contactConverter } from './contacts';
 
-export const PersonSchema = z.object({
+export enum PersonTypes {
+    Undefined = 'Undefined',
+    Internal = 'Internal',
+    Member = 'Member',
+    Guest = 'Guest',
+}
+
+export const PersonEntitySchema = z.object({
+    id: z.string().optional(),
     lastName: z.string().min(1).max(100),
     firstName: z.string().max(100).optional(),
-    /**
-     * YYYYMMDD
-     */
     dateOfBirth: z.string().min(8).optional(),
     email: z.string().min(3).max(200),
-    contact: ContactSchema,
-    type: z.enum(['BusinessUnitManager', 'ShopManager', 'Guest'])
+    contact: ContactEntitySchema,
+    type: z.nativeEnum(PersonTypes),
 })
 
-type Person = z.infer<typeof PersonSchema>
+// Database Entities
+export type PersonEntity = z.infer<typeof PersonEntitySchema>
 
-export default Person;
+// Application DTO
+// cm: reusing entity schema here since both are exactly the same
+export type Person = z.infer<typeof PersonEntitySchema>
+
+export const personConverter = {
+    toEntity(dto: Person): PersonEntity {
+        const personEntity = {
+            id: dto.id ?? new ObjectId().toHexString(),
+            lastName: dto.lastName,
+            firstName: dto.firstName,
+            dateOfBirth: dto.dateOfBirth,
+            email: dto.email,
+            contact: contactConverter.toEntity(dto.contact),
+            type: dto.type
+        };
+
+        const result = PersonEntitySchema.safeParse(personEntity);
+        if (result.success) {
+            return result.data;
+        } else {
+            const zodError = fromZodError(result.error)
+            console.log('validation error', JSON.stringify(zodError))
+            throw new Error('ShopEntitySchema validation error')
+        }
+    },
+
+    toDTO(entity: PersonEntity): Person {
+
+        const personDTO: Person = {
+            id: entity.id,
+            lastName: entity.lastName,
+            firstName: entity.firstName,
+            dateOfBirth: entity.dateOfBirth,
+            email: entity.email,
+            contact: contactConverter.toDTO(entity.contact),
+            type: entity.type
+        };
+
+        const result = PersonEntitySchema.safeParse(personDTO);
+        if (result.success) {
+            return result.data;
+        } else {
+            const zodError = fromZodError(result.error)
+            console.log('validation error', JSON.stringify(zodError))
+            throw new Error('ShopDTOSchema validation error')
+        }
+    },
+};

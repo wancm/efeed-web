@@ -1,5 +1,11 @@
-import sum from "./../libs/utils/sum";
+import { countryAdmin } from "@/libs/shared/facades/country-admin";
 
-export default function Home() {
-  return <h1>{sum(1, 2, 3).toString()}</h1>;
+const loadCountries = async () => {
+  return await countryAdmin.loadCountriesAsync();
+};
+
+export default async function Home() {
+  const countries = await loadCountries();
+
+  return <h1>{JSON.stringify(countries)}</h1>;
 }

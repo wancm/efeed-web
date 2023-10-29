@@ -1,0 +1,158 @@
+import { Collection, ObjectId } from 'mongodb';
+import { utilUnitTest } from '../../utils/util-unit-test';
+import { appMongodb } from '../db/mongodb/mongodb-database';
+import { MONGO_DB_CONSTANT } from '../db/mongodb/mongodb_const';
+import { BusinessUnit, BusinessUnitEntity, businessUnitConverter } from './../../shared/types/business-unit';
+import { AddressTypes, PhoneTypes } from './../../shared/types/contacts';
+import { UrlTypes } from './../../shared/types/image';
+import { PersonTypes } from './../../shared/types/person';
+import { masterDataRepository } from './master-data-repository';
+
+class BusinessUnitRepository {
+
+    private isStartup = false;
+    private businessUnitCollection: Collection<BusinessUnitEntity>;
+
+    constructor() {
+        this.businessUnitCollection = appMongodb.db.collection(MONGO_DB_CONSTANT.COLLECTION_BUSINESS_UNITS);
+    }
+
+    async startupAsync(): Promise<void> {
+
+        if (this.isStartup) return;
+
+        const collections = await appMongodb.db.listCollections().toArray();
+
+        const colIndexFound = collections
+            .findIndex(c => c.name.equalCaseIgnored(MONGO_DB_CONSTANT.COLLECTION_BUSINESS_UNITS));
+
+        if (colIndexFound < 0) {
+            // create collection
+
+            // https://mongodb.github.io/node-mongodb-native/3.0/api/Db.html#createCollection
+            await appMongodb.db.createCollection(MONGO_DB_CONSTANT.COLLECTION_BUSINESS_UNITS)
+
+            console.log(`${MONGO_DB_CONSTANT.COLLECTION_BUSINESS_UNITS} db collection created`);
+
+            // create indexes
+
+            // identifier_asc
+            const indexCreatedResult = await this.businessUnitCollection.createIndex({
+                name: 1
+            }, { name: 'name_asc' })
+
+            console.log(`${MONGO_DB_CONSTANT.COLLECTION_BUSINESS_UNITS} db collection indexes created: ${indexCreatedResult} `);
+
+            const indexCreatedResult2 = await this.businessUnitCollection.createIndex({
+                createdDate: -1
+            }, { name: 'createdDate_desc' })
+
+            console.log(`${MONGO_DB_CONSTANT.COLLECTION_BUSINESS_UNITS} db collection indexes created: ${indexCreatedResult2} `);
+        }
+
+        this.isStartup = true;
+    }
+
+    async loadOneAsync(objId: ObjectId): Promise<BusinessUnit> {
+        const query = { _id: objId };
+
+        const doc = await this.businessUnitCollection.findOne(query);
+        return businessUnitConverter.toDTO(doc as BusinessUnitEntity);
+    }
+
+
+    async loadManyAsync(objIds: ObjectId[]): Promise<BusinessUnit[]> {
+        const query = {
+            "_id": { "$in": objIds }
+        };
+
+        const cursor = await this.businessUnitCollection.find(query);
+
+        const businessUnits: BusinessUnit[] = [];
+        for await (const doc of cursor) {
+            businessUnits.push(businessUnitConverter.toDTO(doc));
+        }
+
+        return businessUnits;
+    }
+
+    async saveAsync(businessUnit: BusinessUnit): Promise<ObjectId> {
+        // convert entity: 5.513ms
+        const entity = businessUnitConverter.toEntity(businessUnit, '456');
+
+        // doc insert: 546.484ms
+        const result = await this.businessUnitCollection.insertOne(entity);
+
+        return result.insertedId;
+    }
+}
+
+export const businessUnitRepository = new BusinessUnitRepository();
+
+if (import.meta.vitest) {
+    const { describe, expect, test, beforeEach } = import.meta.vitest;
+
+    beforeEach(async (context) => {
+        await masterDataRepository.startupAsync();
+        await businessUnitRepository.startupAsync();
+    })
+
+    describe("#Business Unit MongoDb repository save", () => {
+        const test1 = '.saveAsync <=> loadOneAsync, loadManyAsync';
+        test.concurrent(test1, async () => {
+            console.time(test1);
+
+            const countryCode = 'MY';
+
+            let countries = await masterDataRepository.loadCountriesAsync();
+            const malaysia = countries.find(c => c.code.equalCaseIgnored(countryCode));
+
+            const objId = await businessUnitRepository.saveAsync({
+                name: utilUnitTest.generateRandomString(10),
+                persons: [{
+                    lastName: utilUnitTest.generateRandomString(5),
+                    firstName: utilUnitTest.generateRandomString(10),
+                    dateOfBirth: '26051982',
+                    email: 'unittest@test.com',
+                    contact: {
+                        addresses: [{
+                            line1: utilUnitTest.generateRandomString(15),
+                            line2: utilUnitTest.generateRandomString(15),
+                            line3: utilUnitTest.generateRandomString(15),
+                            state: utilUnitTest.generateRandomString(8),
+                            city: utilUnitTest.generateRandomString(15),
+                            countryCode: malaysia?.code,
+                            type: AddressTypes.Primary
+                        }],
+                        phones: [{
+                            number: utilUnitTest.generateRandomNumber(10),
+                            countryCodeNumber: malaysia?.callingCode ?? 0,
+                            type: PhoneTypes.Primary
+                        }]
+                    },
+                    type: PersonTypes.Internal
+                }],
+                products: [{
+                    name: utilUnitTest.generateRandomString(15),
+                    code: utilUnitTest.generateRandomString(8),
+                    price: utilUnitTest.generateRandomNumber(3),
+                    currencyCode: malaysia?.currency?.code ?? 'XXX',
+                    image: {
+                        urls: [{
+                            uri: 'https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.rainforestcruises.com%2Fguides%2Findia-food&psig=AOvVaw37xL1ysYF81v__sCsTVXDw&ust=1698674642103000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCOj4n6e2m4IDFQAAAAAdAAAAABAE',
+                            type: UrlTypes.Main,
+                        }]
+                    }
+                }]
+            });
+
+            const businessUnit = await businessUnitRepository.loadOneAsync(objId);
+
+            expect(businessUnit.id).equals(objId.toHexString());
+
+            console.timeEnd(test1);
+        }, 12000)
+    })
+}
+
+
