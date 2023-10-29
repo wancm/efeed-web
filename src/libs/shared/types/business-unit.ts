@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
 import { z } from 'zod';
 import { fromZodError } from 'zod-validation-error';
-import { util } from '../../utils/util';
+import { util } from '../utils/util';
 import { mongodbUtil } from './../../core/db/mongodb/mongodb-util';
 import { PersonEntitySchema } from './person';
 import { ProductEntitySchema } from './product';

@@ -1,5 +1,5 @@
 import { ObjectId } from "mongodb";
-import { util } from "./../../../utils/util";
+import { util } from "../../../shared/utils/util";
 
 class MongoDbUtil {
     genId(id?: string): ObjectId {

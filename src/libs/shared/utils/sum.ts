@@ -37,11 +37,11 @@ if (import.meta.vitest) {
 
 
         test('should work2', (context: any) => {
-            expect(context.foo).toBe('bar');
+            expect(context.param1).toBe('bar');
         });
 
         test('should work3', (context: any) => {
-            expect(context.foo).toBe('bar');
+            expect(context.param1).toBe('bar');
         });
 
         test.concurrent('returns 0 with no numbers', () => {

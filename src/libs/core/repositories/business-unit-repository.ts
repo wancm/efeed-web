@@ -1,5 +1,5 @@
 import { Collection, ObjectId } from 'mongodb';
-import { utilUnitTest } from '../../utils/util-unit-test';
+import { utilUnitTest } from '../../shared/utils/util-unit-test';
 import { appMongodb } from '../db/mongodb/mongodb-database';
 import { MONGO_DB_CONSTANT } from '../db/mongodb/mongodb_const';
 import { BusinessUnit, BusinessUnitEntity, businessUnitConverter } from './../../shared/types/business-unit';

@@ -2,7 +2,7 @@ import { Country } from '@/libs/shared/types/countries';
 import { Collection, ObjectId } from 'mongodb';
 import { appMongodb } from '../db/mongodb/mongodb-database';
 import { MONGO_DB_CONSTANT } from '../db/mongodb/mongodb_const';
-import './../../utils/extensions';
+import '../../shared/utils/extensions';
 
 class MasterDataRepository {
 

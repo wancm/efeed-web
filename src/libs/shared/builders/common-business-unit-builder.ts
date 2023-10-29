@@ -1,4 +1,4 @@
-import { util } from '@/libs/utils/util';
+import { util } from '@/libs/shared/utils/util';
 import { UUID } from 'mongodb';
 import BusinessUnit from '../types/business-unit';
 import Person, { PersonSchema } from '../types/person';

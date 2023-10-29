@@ -5,8 +5,8 @@ import { appSettings } from './../../../libs/appSettings';
 import { AddressTypes, PhoneTypes } from './../../shared/types/contacts';
 import { PersonTypes } from './../../shared/types/person';
 import { Shop, ShopEntity, shopConverter } from './../../shared/types/shop';
-import './../../utils/extensions';
-import { utilUnitTest } from './../../utils/util-unit-test';
+import '../../shared/utils/extensions';
+import { utilUnitTest } from '../../shared/utils/util-unit-test';
 import { masterDataRepository } from './master-data-repository';
 
 class ShopRepository {
