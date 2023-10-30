@@ -149,6 +149,42 @@ class Util {
         if (util.isStrEmpty(val)) return '';
         return val as string;
     }
+
+    mapSetJsonStringify(map: Map<string, any>): string {
+
+        // https://www.youtube.com/watch?v=hubQQ3F337A
+
+        return JSON.stringify(map, (key, value) => {
+
+            if (value instanceof Map) {
+                return Object.fromEntries(value);
+            }
+
+            if (value instanceof Set) {
+                return Array.from(value);
+            }
+
+            return value;
+        }, 2);
+    }
+
+    mapSetJsonParse(json: string): Map<string, any> | Set<any> {
+
+        // https://www.youtube.com/watch?v=hubQQ3F337A
+
+        return JSON.parse(json, (key, value) => {
+
+            if (Array.isArray(value)) {
+                return new Set<any>(value);
+            }
+
+            if (value && typeof value === 'object') {
+                return new Map(Object.entries(value));
+            }
+
+            return value;
+        });
+    }
 }
 
 export const util = new Util();
@@ -367,6 +403,33 @@ if (import.meta.vitest) {
             expect(util.toNullStr('123')).toEqual('123');
 
             console.timeEnd(test12);
+        })
+
+        const test13 = '.mapJsonStringify <=> mapJsonParse';
+        test.concurrent(test13, async () => {
+            console.time(test13);
+
+            const map = new Map();
+            map.set('key1', 'value1');
+            map.set('key2', 123);
+            map.set('key3', true);
+            map.set('key4', new Date().toDateString());
+
+            const json = util.mapSetJsonStringify(map);
+            expect(json.length).toBeGreaterThan(0);
+
+            const parseMap = util.mapSetJsonParse(json) as Map<string, any>;
+            parseMap.forEach((value: any, key: string) => {
+                expect(map.has(key)).toBeTruthy();
+                try {
+                    expect(map.get(key)).toEqual(parseMap.get(key));
+                }
+                catch (err) {
+                    console.log(key, map.get(key));
+                }
+            })
+
+            console.timeEnd(test13);
         })
     })
 }

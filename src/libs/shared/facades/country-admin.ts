@@ -1,9 +1,22 @@
 import { masterDataRepository } from "../../core/repositories/master-data-repository";
+import { cacheService } from "../cache/cache-service";
 import { Country } from "../types/countries";
 
 class CountryAdmin {
+
+    private readonly COUNTRIES_CACHE_KEY = 'countries';
+
     async loadCountriesAsync(): Promise<Country[]> {
-        const countries = await masterDataRepository.loadCountriesAsync();
+
+        let countries = await cacheService.tryGetAsync<Country[]>(this.COUNTRIES_CACHE_KEY);
+
+        if (countries) {
+            return countries;
+        }
+
+        countries = await masterDataRepository.loadCountriesAsync();
+
+        cacheService.trySetAsync(this.COUNTRIES_CACHE_KEY, countries, -1);
 
         return countries;
     }

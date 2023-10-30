@@ -1,11 +1,41 @@
-import { countryAdmin } from "@/libs/shared/facades/country-admin";
+import { cacheService } from "@/libs/shared/cache/cache-service";
 
-const loadCountries = async () => {
-  return await countryAdmin.loadCountriesAsync();
+let sessionDisplay = "this is session";
+let counter = 1;
+
+sessionDisplay = `${sessionDisplay} ${counter}`;
+
+const sessionStart = async () => {
+  cacheService.trySetAsync(
+    "session",
+    {
+      name: "this is session",
+    },
+    10
+  );
+};
+
+const sessionPooling = async () => {
+  const session = await cacheService.tryGetAsync("session");
+  counter++;
+
+  if (session) {
+    sessionDisplay = `${sessionDisplay} ${counter}`;
+
+    setTimeout(async () => {
+      await sessionPooling();
+    }, 1000);
+  } else {
+    sessionDisplay = `session expired`;
+  }
 };
 
 export default async function Home() {
-  const countries = await loadCountries();
+  const session = await sessionStart();
 
-  return <h1>{JSON.stringify(countries)}</h1>;
+  setTimeout(async () => {
+    await sessionPooling();
+  }, 1000);
+
+  return <h1>{`${sessionDisplay}`}</h1>;
 }

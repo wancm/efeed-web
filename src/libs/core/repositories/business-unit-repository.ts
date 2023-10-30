@@ -2,12 +2,12 @@ import { Collection, ObjectId } from 'mongodb';
 import { utilUnitTest } from '../../shared/utils/util-unit-test';
 import { appMongodb } from '../db/mongodb/mongodb-database';
 import { MONGO_DB_CONSTANT } from '../db/mongodb/mongodb_const';
+import { appSettings } from './../../appSettings';
 import { BusinessUnit, BusinessUnitEntity, businessUnitConverter } from './../../shared/types/business-unit';
 import { AddressTypes, PhoneTypes } from './../../shared/types/contacts';
 import { UrlTypes } from './../../shared/types/image';
 import { PersonTypes } from './../../shared/types/person';
 import { masterDataRepository } from './master-data-repository';
-import { appSettings } from '@/libs/appSettings';
 
 class BusinessUnitRepository {
 
@@ -174,5 +174,3 @@ if (import.meta.vitest) {
         }, 12000)
     })
 }
-
-
