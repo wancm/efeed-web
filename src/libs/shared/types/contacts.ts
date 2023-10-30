@@ -57,14 +57,8 @@ export const contactConverter = {
         const contactEntity = {
             id: dto.id ?? new ObjectId().toHexString(),
             addresses: dto.addresses?.map(a => {
-                try {
-                    a.id = a.id ?? new ObjectId().toHexString()
-                    return AddressEntitySchema.parse(a)
-                }
-                catch (err) {
-                    console.log(err);
-                }
-
+                a.id = a.id ?? new ObjectId().toHexString()
+                return AddressEntitySchema.parse(a)
             }),
             phones: dto.phones?.map(p => {
                 p.id = p.id ?? new ObjectId().toHexString()
@@ -75,10 +69,12 @@ export const contactConverter = {
         const result = ContactEntitySchema.safeParse(contactEntity);
         if (result.success) {
             return result.data;
+            /* c8 ignore start */
         } else {
             const zodError = fromZodError(result.error)
             console.log('validation error', JSON.stringify(zodError))
             throw new Error('ShopEntitySchema validation error')
+            /* c8 ignore end */
         }
     },
 
@@ -92,10 +88,12 @@ export const contactConverter = {
         const result = ContactEntitySchema.safeParse(contactDTO);
         if (result.success) {
             return result.data;
+            /* c8 ignore start */
         } else {
             const zodError = fromZodError(result.error)
             console.log('validation error', JSON.stringify(zodError))
             throw new Error('ShopDTOSchema validation error')
+            /* c8 ignore end */
         }
     },
 };

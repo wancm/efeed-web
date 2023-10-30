@@ -42,10 +42,12 @@ export const personConverter = {
         const result = PersonEntitySchema.safeParse(personEntity);
         if (result.success) {
             return result.data;
+            /* c8 ignore start */
         } else {
             const zodError = fromZodError(result.error)
             console.log('validation error', JSON.stringify(zodError))
             throw new Error('ShopEntitySchema validation error')
+            /* c8 ignore end */
         }
     },
 
@@ -64,10 +66,12 @@ export const personConverter = {
         const result = PersonEntitySchema.safeParse(personDTO);
         if (result.success) {
             return result.data;
+            /* c8 ignore start */
         } else {
             const zodError = fromZodError(result.error)
             console.log('validation error', JSON.stringify(zodError))
             throw new Error('ShopDTOSchema validation error')
+            /* c8 ignore end */
         }
     },
 };

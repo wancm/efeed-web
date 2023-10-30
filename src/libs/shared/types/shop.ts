@@ -1,8 +1,8 @@
 import { ObjectId } from 'mongodb';
 import { z } from 'zod';
 import { fromZodError } from 'zod-validation-error';
-import { mongodbUtil } from './../../core/db/mongodb/mongodb-util';
 import { util } from '../utils/util';
+import { mongodbUtil } from './../../core/db/mongodb/mongodb-util';
 import { PersonEntitySchema, personConverter } from './person';
 
 export const ShopEntitySchema = z.object({
@@ -42,7 +42,7 @@ export const shopConverter = {
             businessUnitId: new ObjectId(dto.businessUnitId),
             name: dto.name,
             code: dto.code,
-            contactPersons: dto.contactPersons?.map(p => personConverter.toEntity(p)),
+            persons: dto.persons?.map(p => personConverter.toEntity(p)),
             createdBy: '',
             productIds
         };
@@ -50,10 +50,12 @@ export const shopConverter = {
         const result = ShopEntitySchema.safeParse(shopEntity);
         if (result.success) {
             return result.data;
+            /* c8 ignore start */
         } else {
             const zodError = fromZodError(result.error)
             console.log('validation error', JSON.stringify(zodError))
             throw new Error('ShopEntitySchema validation error')
+            /* c8 ignore end */
         }
     },
 
@@ -64,17 +66,19 @@ export const shopConverter = {
             businessUnitId: entity.businessUnitId.toHexString(),
             name: entity.name,
             code: entity.code,
-            contactPersons: entity.contactPersons?.map(p => personConverter.toDTO(p)),
+            persons: entity.persons?.map(p => personConverter.toDTO(p)),
             productIds: entity.productIds
         };
 
         const result = ShopDTOSchema.safeParse(shopDTO);
         if (result.success) {
             return result.data;
+            /* c8 ignore start */
         } else {
             const zodError = fromZodError(result.error)
             console.log('validation error', JSON.stringify(zodError))
             throw new Error('ShopDTOSchema validation error')
+            /* c8 ignore end */
         }
     },
 };

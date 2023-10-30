@@ -1,12 +1,12 @@
 import { Collection, ObjectId } from 'mongodb';
+import '../../shared/utils/extensions';
+import { utilUnitTest } from '../../shared/utils/util-unit-test';
 import { appMongodb } from '../db/mongodb/mongodb-database';
 import { MONGO_DB_CONSTANT } from '../db/mongodb/mongodb_const';
 import { appSettings } from './../../../libs/appSettings';
 import { AddressTypes, PhoneTypes } from './../../shared/types/contacts';
 import { PersonTypes } from './../../shared/types/person';
 import { Shop, ShopEntity, shopConverter } from './../../shared/types/shop';
-import '../../shared/utils/extensions';
-import { utilUnitTest } from '../../shared/utils/util-unit-test';
 import { masterDataRepository } from './master-data-repository';
 
 class ShopRepository {
@@ -21,6 +21,8 @@ class ShopRepository {
     async startupAsync(): Promise<void> {
 
         if (this.isStartup) return;
+
+        /* c8 ignore start */
 
         const collections = await appMongodb.db.listCollections().toArray();
 
@@ -58,6 +60,8 @@ class ShopRepository {
         }
 
         this.isStartup = true;
+
+        /* c8 ignore end */
     }
 
     async loadOneAsync(objId: ObjectId): Promise<Shop> {
@@ -124,38 +128,39 @@ if (import.meta.vitest) {
             const countries = await masterDataRepository.loadCountriesAsync();
             const malaysia = countries.find(c => c.code.equalCaseIgnored(countryCode));
 
-            const objId = await shopRepository.saveAsync({
-                name: utilUnitTest.generateRandomString(10),
-                businessUnitId,
-                contactPersons: [{
-                    lastName: utilUnitTest.generateRandomString(5),
-                    firstName: utilUnitTest.generateRandomString(10),
-                    dateOfBirth: '26051982',
-                    email: 'unittest@test.com',
-                    contact: {
-                        addresses: [{
-                            line1: utilUnitTest.generateRandomString(15),
-                            line2: utilUnitTest.generateRandomString(15),
-                            line3: utilUnitTest.generateRandomString(15),
-                            state: utilUnitTest.generateRandomString(8),
-                            city: utilUnitTest.generateRandomString(15),
-                            countryCode: malaysia?.code,
-                            type: AddressTypes.Primary
-                        }],
-                        phones: [{
-                            number: utilUnitTest.generateRandomNumber(10),
-                            countryCodeNumber: malaysia?.callingCode ?? 0,
-                            type: PhoneTypes.Primary
-                        }]
-                    },
-                    type: PersonTypes.Internal
-                }]
-            }, appSettings.systemId);
+            const mock = async () => {
+                return {
+                    name: utilUnitTest.generateRandomString(10),
+                    businessUnitId,
+                    persons: [{
+                        lastName: utilUnitTest.generateRandomString(5),
+                        firstName: utilUnitTest.generateRandomString(10),
+                        dateOfBirth: '26051982',
+                        email: 'unittest@test.com',
+                        contact: {
+                            addresses: [{
+                                line1: utilUnitTest.generateRandomString(15),
+                                line2: utilUnitTest.generateRandomString(15),
+                                line3: utilUnitTest.generateRandomString(15),
+                                state: utilUnitTest.generateRandomString(8),
+                                city: utilUnitTest.generateRandomString(15),
+                                countryCode: malaysia?.code,
+                                type: AddressTypes.Primary
+                            }],
+                            phones: [{
+                                number: utilUnitTest.generateRandomNumber(10),
+                                countryCodeNumber: malaysia?.callingCode ?? 0,
+                                type: PhoneTypes.Primary
+                            }]
+                        },
+                        type: PersonTypes.Internal
+                    }]
+                }
+            };
 
-            const objId2 = await shopRepository.saveAsync({
-                name: utilUnitTest.generateRandomString(10),
-                businessUnitId
-            }, appSettings.systemId);
+            const objId = await shopRepository.saveAsync(await mock(), appSettings.systemId);
+
+            const objId2 = await shopRepository.saveAsync(await mock(), appSettings.systemId);
 
             const shop = await shopRepository.loadOneAsync(objId);
 

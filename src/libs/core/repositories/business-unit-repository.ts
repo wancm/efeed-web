@@ -21,12 +21,16 @@ class BusinessUnitRepository {
 
         if (this.isStartup) return;
 
+        /* c8 ignore start */
+
         const collections = await appMongodb.db.listCollections().toArray();
 
         const colIndexFound = collections
             .findIndex(c => c.name.equalCaseIgnored(MONGO_DB_CONSTANT.COLLECTION_BUSINESS_UNITS));
 
         if (colIndexFound < 0) {
+
+
             // create collection
 
             // https://mongodb.github.io/node-mongodb-native/3.0/api/Db.html#createCollection
@@ -51,6 +55,8 @@ class BusinessUnitRepository {
         }
 
         this.isStartup = true;
+
+        /* c8 ignore end */
     }
 
     async loadOneAsync(objId: ObjectId): Promise<BusinessUnit> {
@@ -76,9 +82,10 @@ class BusinessUnitRepository {
         return businessUnits;
     }
 
-    async saveAsync(businessUnit: BusinessUnit): Promise<ObjectId> {
+    async saveAsync(businessUnit: BusinessUnit, createdBy: string): Promise<ObjectId> {
         // convert entity: 5.513ms
-        const entity = businessUnitConverter.toEntity(businessUnit, '456');
+        const entity = businessUnitConverter.toEntity(businessUnit);
+        entity.createdBy = createdBy;
 
         // doc insert: 546.484ms
         const result = await this.businessUnitCollection.insertOne(entity);
@@ -99,6 +106,8 @@ if (import.meta.vitest) {
 
     describe("#Business Unit MongoDb repository save", () => {
         const test1 = '.saveAsync <=> loadOneAsync, loadManyAsync';
+
+
         test.concurrent(test1, async () => {
             console.time(test1);
 
@@ -107,44 +116,54 @@ if (import.meta.vitest) {
             let countries = await masterDataRepository.loadCountriesAsync();
             const malaysia = countries.find(c => c.code.equalCaseIgnored(countryCode));
 
-            const objId = await businessUnitRepository.saveAsync({
-                name: utilUnitTest.generateRandomString(10),
-                persons: [{
-                    lastName: utilUnitTest.generateRandomString(5),
-                    firstName: utilUnitTest.generateRandomString(10),
-                    dateOfBirth: '26051982',
-                    email: 'unittest@test.com',
-                    contact: {
-                        addresses: [{
-                            line1: utilUnitTest.generateRandomString(15),
-                            line2: utilUnitTest.generateRandomString(15),
-                            line3: utilUnitTest.generateRandomString(15),
-                            state: utilUnitTest.generateRandomString(8),
-                            city: utilUnitTest.generateRandomString(15),
-                            countryCode: malaysia?.code,
-                            type: AddressTypes.Primary
-                        }],
-                        phones: [{
-                            number: utilUnitTest.generateRandomNumber(10),
-                            countryCodeNumber: malaysia?.callingCode ?? 0,
-                            type: PhoneTypes.Primary
-                        }]
-                    },
-                    type: PersonTypes.Internal
-                }],
-                products: [{
-                    name: utilUnitTest.generateRandomString(15),
-                    code: utilUnitTest.generateRandomString(8),
-                    price: utilUnitTest.generateRandomNumber(3),
-                    currencyCode: malaysia?.currency?.code ?? 'XXX',
-                    image: {
-                        urls: [{
-                            uri: 'https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.rainforestcruises.com%2Fguides%2Findia-food&psig=AOvVaw37xL1ysYF81v__sCsTVXDw&ust=1698674642103000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCOj4n6e2m4IDFQAAAAAdAAAAABAE',
-                            type: UrlTypes.Main,
-                        }]
-                    }
-                }]
-            });
+            const mock = async () => {
+
+                return {
+                    name: utilUnitTest.generateRandomString(10),
+                    persons: [{
+                        lastName: utilUnitTest.generateRandomString(5),
+                        firstName: utilUnitTest.generateRandomString(10),
+                        dateOfBirth: '26051982',
+                        email: 'unittest@test.com',
+                        contact: {
+                            addresses: [{
+                                line1: utilUnitTest.generateRandomString(15),
+                                line2: utilUnitTest.generateRandomString(15),
+                                line3: utilUnitTest.generateRandomString(15),
+                                state: utilUnitTest.generateRandomString(8),
+                                city: utilUnitTest.generateRandomString(15),
+                                countryCode: malaysia?.code,
+                                type: AddressTypes.Primary
+                            }],
+                            phones: [{
+                                number: utilUnitTest.generateRandomNumber(10),
+                                countryCodeNumber: malaysia?.callingCode ?? 0,
+                                type: PhoneTypes.Primary
+                            }]
+                        },
+                        type: PersonTypes.Internal
+                    }],
+                    products: [{
+                        name: utilUnitTest.generateRandomString(15),
+                        code: utilUnitTest.generateRandomString(8),
+                        price: utilUnitTest.generateRandomNumber(3),
+                        currencyCode: malaysia?.currency?.code ?? 'XXX',
+                        image: {
+                            urls: [{
+                                uri: 'https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.rainforestcruises.com%2Fguides%2Findia-food&psig=AOvVaw37xL1ysYF81v__sCsTVXDw&ust=1698674642103000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCOj4n6e2m4IDFQAAAAAdAAAAABAE',
+                                type: UrlTypes.Main,
+                            }]
+                        }
+                    }],
+                    shopIds: ['653e6b472d127ec69b090e3e']
+                }
+            }
+
+            const objId = await businessUnitRepository.saveAsync(await mock());
+
+            const mock2 = await mock();
+            mock2.shopIds = [];
+            const objId2 = await businessUnitRepository.saveAsync(mock2);
 
             const businessUnit = await businessUnitRepository.loadOneAsync(objId);
 

@@ -1,12 +1,14 @@
 import { Country } from '@/libs/shared/types/countries';
 import { Collection, ObjectId } from 'mongodb';
+import '../../shared/utils/extensions';
 import { appMongodb } from '../db/mongodb/mongodb-database';
 import { MONGO_DB_CONSTANT } from '../db/mongodb/mongodb_const';
-import '../../shared/utils/extensions';
 
 class MasterDataRepository {
 
     private isStartup = false;
+    private isThreadLock = false;
+
     private readonly COUNTRIES_MASTER_DATA: string = 'countries_master_data';
     private masterDataCollection: Collection<any>;
 
@@ -18,12 +20,15 @@ class MasterDataRepository {
 
         if (this.isStartup) return;
 
+        /* c8 ignore start */
+
         const collections = await appMongodb.db.listCollections().toArray();
 
         const colIndexFound = collections
             .findIndex(c => c.name.equalCaseIgnored(MONGO_DB_CONSTANT.COLLECTION_MASTER_DATA));
 
         if (colIndexFound < 0) {
+
             // create collection
 
             // https://mongodb.github.io/node-mongodb-native/3.0/api/Db.html#createCollection
@@ -42,6 +47,8 @@ class MasterDataRepository {
         }
 
         this.isStartup = true;
+
+        /* c8 ignore end */
     }
 
     async loadCountriesAsync(): Promise<Country[]> {

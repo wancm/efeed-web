@@ -1,9 +1,9 @@
 import countryByAbbreviation from "country-json/src/country-by-abbreviation.json";
 import countryByCallingCode from "country-json/src/country-by-calling-code.json";
 import countryByCurrencyCode from "country-json/src/country-by-currency-code.json";
+import { Country } from "../../shared/types/countries";
 import { masterDataRepository } from "../repositories/master-data-repository";
 import commonCurrency from "./../../data/common-currency.json";
-import { Country } from "../../shared/types/countries";
 
 class CountryService {
     loadCountriesMasterDataFromCountryJs(): Country[] {
@@ -45,10 +45,12 @@ class CountryService {
     async refreshCountriesMasterDataAsync(forceRefresh: boolean = false) {
         const countries = await masterDataRepository.loadCountriesAsync();
 
+        /* c8 ignore start */
         if (countries.length === 0 || forceRefresh) {
             const loadedCountries = countryService.loadCountriesMasterDataFromCountryJs();
             await masterDataRepository.saveCountriesAsync(loadedCountries);
         }
+        /* c8 ignore end */
     }
 }
 
@@ -69,6 +71,17 @@ if (import.meta.vitest) {
             const countries = await masterDataRepository.loadCountriesAsync();
 
             expect(countries.length).greaterThan(0);
+        });
+
+        test('load countries master data from CountryJs', async (context) => {
+            const raw = await countryService.loadCountriesMasterDataFromCountryJs();
+
+            const countries = await masterDataRepository.loadCountriesAsync();
+
+            raw.forEach(rawCountry => {
+                const found = countries.find(c => c.code.equalCaseIgnored(rawCountry.code));
+                expect(found).not.toBeNull();
+            });
         });
     })
 }

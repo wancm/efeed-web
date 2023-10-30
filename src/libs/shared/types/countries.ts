@@ -12,7 +12,7 @@ export const CurrencyEntitySchema = z.object({
 
 export const CountryEntitySchema = z.object({
     code: z.string().min(2),
-    name: z.string().min(3).max(200),
+    name: z.string().max(200),
     currency: CurrencyEntitySchema.optional(),
     callingCode: z.number().optional()
 })

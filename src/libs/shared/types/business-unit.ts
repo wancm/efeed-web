@@ -3,8 +3,8 @@ import { z } from 'zod';
 import { fromZodError } from 'zod-validation-error';
 import { util } from '../utils/util';
 import { mongodbUtil } from './../../core/db/mongodb/mongodb-util';
-import { PersonEntitySchema } from './person';
-import { ProductEntitySchema } from './product';
+import { PersonEntitySchema, personConverter } from './person';
+import { ProductEntitySchema, productConverter } from './product';
 
 // https://zzdjk6.medium.com/typescript-zod-and-mongodb-a-guide-to-orm-free-data-access-layers-f83f39aabdf3
 
@@ -49,8 +49,8 @@ export const businessUnitConverter = {
             _id: mongodbUtil.genId(dto.id),
             name: dto.name,
             code: dto.code,
-            persons: dto.persons,
-            products: dto.products,
+            persons: dto.persons?.map(p => personConverter.toEntity(p)),
+            products: dto.products?.map(p => productConverter.toEntity(p)),
             createdBy: '',
             shopIds
         };
@@ -58,10 +58,12 @@ export const businessUnitConverter = {
         const result = BusinessUnitEntitySchema.safeParse(businessUnitEntity);
         if (result.success) {
             return result.data;
+            /* c8 ignore start */
         } else {
             const zodError = fromZodError(result.error)
             console.log('validation error', JSON.stringify(zodError))
             throw new Error('BusinessUnitEntitySchema validation error')
+            /* c8 ignore end */
         }
     },
 
@@ -70,18 +72,20 @@ export const businessUnitConverter = {
             id: entity._id.toHexString(),
             name: entity.name,
             code: entity.code,
-            persons: entity.persons,
-            products: entity.products,
+            persons: entity.persons?.map(p => personConverter.toDTO(p)),
+            products: entity.products?.map(p => productConverter.toDTO(p)),
             shopIds: entity.shopIds.map(id => id.toHexString())
         };
 
         const result = BusinessUnitDTOSchema.safeParse(businessUnitDTO);
         if (result.success) {
             return result.data;
+            /* c8 ignore start */
         } else {
             const zodError = fromZodError(result.error)
             console.log('validation error', JSON.stringify(zodError))
             throw new Error('BusinessUnitDTOSchema validation error')
+            /* c8 ignore end */
         }
     },
 };

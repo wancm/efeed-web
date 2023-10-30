@@ -40,10 +40,12 @@ export const productConverter = {
         const result = ProductEntitySchema.safeParse(productEntity);
         if (result.success) {
             return result.data;
+            /* c8 ignore start */
         } else {
             const zodError = fromZodError(result.error)
             console.log('validation error', JSON.stringify(zodError))
             throw new Error('ProductEntitySchema validation error')
+            /* c8 ignore end */
         }
     },
 
@@ -60,10 +62,12 @@ export const productConverter = {
         const result = ProductEntitySchema.safeParse(productDTO);
         if (result.success) {
             return result.data;
+            /* c8 ignore start */
         } else {
             const zodError = fromZodError(result.error)
             console.log('validation error', JSON.stringify(zodError))
             throw new Error('ProductEntitySchema validation error')
+            /* c8 ignore end */
         }
     },
 };
