@@ -1,48 +1,24 @@
-import { util } from '@/libs/shared/utils/util';
-import { UUID } from 'mongodb';
-import BusinessUnit from '../types/business-unit';
-import Person, { PersonSchema } from '../types/person';
-import Shop, { ShopSchema } from '../types/shop';
+import { ObjectId } from 'mongodb';
+
+import { BusinessUnit } from '../types/business-unit';
+import { Person } from '../types/person';
 import { BusinessUnitBuilder } from './types/builders';
 
 export class CommonBusinessUnitBuilder implements BusinessUnitBuilder {
 
-    private businessUnit: BusinessUnit = {
-        name: '',
-        shops: []
-    }
+    private businessUnit?: BusinessUnit;
 
-    load(id: UUID): BusinessUnit {
+    load(id: ObjectId): BusinessUnit {
         // load from database
-        return this.businessUnit = {
-            name: 'load from database',
-            shops: []
-        }
+        return {};
     }
 
     build(name: string): BusinessUnit {
-        return this.businessUnit = {
-            name,
-            shops: []
-        }
+        return this.businessUnit ?? {};
     }
 
-    addContactPerson = (pContactPerson: Person) => {
-        const contactPerson = PersonSchema.parse(pContactPerson);
-        if (util.isEmptyArr(this.businessUnit.contactPersons)) {
-            this.businessUnit.contactPersons = [];
-        }
-
-        this.businessUnit.contactPersons?.push(contactPerson);
-    }
-
-    addShop = (pShop: Shop) => {
-        const shop = ShopSchema.parse(pShop);
-        if (util.isEmptyArr(this.businessUnit.shops)) {
-            this.businessUnit.shops = [];
-        }
-
-        this.businessUnit.shops?.push(shop);
+    addPerson = (person: Person) => {
+        this.businessUnit?.persons?.push(person);
     }
 
 }

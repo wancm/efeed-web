@@ -2,7 +2,7 @@ import { masterDataRepository } from "../../core/repositories/master-data-reposi
 import { Country } from "../types/countries";
 
 class CountryAdmin {
-    async loadCountriesAsync(): Country[] {
+    async loadCountriesAsync(): Promise<Country[]> {
         const countries = await masterDataRepository.loadCountriesAsync();
 
         return countries;

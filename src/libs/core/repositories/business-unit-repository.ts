@@ -7,6 +7,7 @@ import { AddressTypes, PhoneTypes } from './../../shared/types/contacts';
 import { UrlTypes } from './../../shared/types/image';
 import { PersonTypes } from './../../shared/types/person';
 import { masterDataRepository } from './master-data-repository';
+import { appSettings } from '@/libs/appSettings';
 
 class BusinessUnitRepository {
 
@@ -159,11 +160,11 @@ if (import.meta.vitest) {
                 }
             }
 
-            const objId = await businessUnitRepository.saveAsync(await mock());
+            const objId = await businessUnitRepository.saveAsync(await mock(), appSettings.systemId);
 
             const mock2 = await mock();
             mock2.shopIds = [];
-            const objId2 = await businessUnitRepository.saveAsync(mock2);
+            const objId2 = await businessUnitRepository.saveAsync(mock2, appSettings.systemId);
 
             const businessUnit = await businessUnitRepository.loadOneAsync(objId);
 

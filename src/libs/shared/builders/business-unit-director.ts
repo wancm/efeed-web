@@ -1,5 +1,6 @@
+import { appSettings } from "@/libs/appSettings";
 import { businessUnitRepository } from "../../core/repositories/business-unit-repository";
-import BusinessUnit from "../types/business-unit";
+import { BusinessUnit } from "../types/business-unit";
 import { CommonBusinessUnitBuilder } from "./common-business-unit-builder";
 
 class BusinessUnitDirector {
@@ -11,7 +12,7 @@ class BusinessUnitDirector {
             .commonBusinessUnitBuilder
             .build(name);
 
-        const objId = businessUnitRepository.save(businessUnit);
+        const objId = await businessUnitRepository.saveAsync(businessUnit, appSettings.systemId);
 
         return businessUnit;
     }

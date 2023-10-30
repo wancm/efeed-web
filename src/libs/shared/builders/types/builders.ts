@@ -1,8 +1,8 @@
 /** https://refactoring.guru/design-patterns/builder */
 
-import Contact, { Address, Phone } from "../../types/contacts";
-import Person from "../../types/person";
-import Shop from "../../types/shop";
+import { Address, Contact, Phone } from "../../types/contacts";
+import { Person } from "../../types/person";
+import { Shop } from "../../types/shop";
 
 export type ContactBuilder = {
     setPrimaryAddress: (address: Address) => void,
@@ -16,11 +16,10 @@ export type PersonBuilder = {
 }
 
 export type BusinessUnitBuilder = {
-    addContactPerson: (contact: Person) => void,
-    addShop: (shop: Shop) => void
+    addPerson: (person: Person) => void
 }
 
 export type ShopBuilder = {
-    addContactPerson: (contact: Person) => void,
+    addPerson: (person: Person) => void,
     addProduct: (shop: Shop) => void
 }

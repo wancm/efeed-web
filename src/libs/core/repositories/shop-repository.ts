@@ -1,4 +1,4 @@
-import { Collection, ObjectId } from 'mongodb';
+import { Collection, ObjectId, SortDirection } from 'mongodb';
 import '../../shared/utils/extensions';
 import { utilUnitTest } from '../../shared/utils/util-unit-test';
 import { appMongodb } from '../db/mongodb/mongodb-database';
@@ -79,8 +79,9 @@ class ShopRepository {
         }
 
         // https://www.mongodb.com/docs/drivers/node/current/fundamentals/crud/read-operations/sort/
-        // sort in descending (-1) order by name
-        const sort = { name: 1 }
+        // sort in descending (-1) order by 
+        const dir: SortDirection = 'asc';
+        const sort = { 'name': dir }
 
         const cursor = this.shopCollection
             .find(query)
