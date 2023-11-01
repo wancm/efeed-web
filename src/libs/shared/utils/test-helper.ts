@@ -1,5 +1,5 @@
 
-class UtilUnitTest {
+class TestHelper {
     generateRandomString(length: number): string {
         let result = '';
         const characters =
@@ -23,4 +23,4 @@ class UtilUnitTest {
     };
 }
 
-export const utilUnitTest = new UtilUnitTest();
+export const testHelper = new TestHelper();

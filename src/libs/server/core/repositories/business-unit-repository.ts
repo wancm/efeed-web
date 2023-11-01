@@ -1,12 +1,12 @@
 import { Collection, ObjectId } from 'mongodb';
-import { utilUnitTest } from '../../shared/utils/util-unit-test';
 import { appMongodb } from '../db/mongodb/mongodb-database';
 import { MONGO_DB_CONSTANT } from '../db/mongodb/mongodb_const';
-import { appSettings } from './../../appSettings';
-import { BusinessUnit, BusinessUnitEntity, businessUnitConverter } from './../../shared/types/business-unit';
-import { AddressTypes, PhoneTypes } from './../../shared/types/contacts';
-import { UrlTypes } from './../../shared/types/image';
-import { PersonTypes } from './../../shared/types/person';
+import { appSettings } from './../../../appSettings';
+import { BusinessUnit, BusinessUnitEntity, businessUnitConverter } from './../../../shared/types/business-unit';
+import { AddressTypes, PhoneTypes } from './../../../shared/types/contacts';
+import { UrlTypes } from './../../../shared/types/image';
+import { PersonTypes } from './../../../shared/types/person';
+import { testHelper } from '../../../shared/utils/test-helper';
 import { masterDataRepository } from './master-data-repository';
 
 class BusinessUnitRepository {
@@ -120,24 +120,24 @@ if (import.meta.vitest) {
             const mock = async () => {
 
                 return {
-                    name: utilUnitTest.generateRandomString(10),
+                    name: testHelper.generateRandomString(10),
                     persons: [{
-                        lastName: utilUnitTest.generateRandomString(5),
-                        firstName: utilUnitTest.generateRandomString(10),
+                        lastName: testHelper.generateRandomString(5),
+                        firstName: testHelper.generateRandomString(10),
                         dateOfBirth: '26051982',
                         email: 'unittest@test.com',
                         contact: {
                             addresses: [{
-                                line1: utilUnitTest.generateRandomString(15),
-                                line2: utilUnitTest.generateRandomString(15),
-                                line3: utilUnitTest.generateRandomString(15),
-                                state: utilUnitTest.generateRandomString(8),
-                                city: utilUnitTest.generateRandomString(15),
+                                line1: testHelper.generateRandomString(15),
+                                line2: testHelper.generateRandomString(15),
+                                line3: testHelper.generateRandomString(15),
+                                state: testHelper.generateRandomString(8),
+                                city: testHelper.generateRandomString(15),
                                 countryCode: malaysia?.code,
                                 type: AddressTypes.Primary
                             }],
                             phones: [{
-                                number: utilUnitTest.generateRandomNumber(10),
+                                number: testHelper.generateRandomNumber(10),
                                 countryCodeNumber: malaysia?.callingCode ?? 0,
                                 type: PhoneTypes.Primary
                             }]
@@ -145,9 +145,9 @@ if (import.meta.vitest) {
                         type: PersonTypes.Internal
                     }],
                     products: [{
-                        name: utilUnitTest.generateRandomString(15),
-                        code: utilUnitTest.generateRandomString(8),
-                        price: utilUnitTest.generateRandomNumber(3),
+                        name: testHelper.generateRandomString(15),
+                        code: testHelper.generateRandomString(8),
+                        price: testHelper.generateRandomNumber(3),
                         currencyCode: malaysia?.currency?.code ?? 'XXX',
                         image: {
                             urls: [{

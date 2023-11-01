@@ -1,8 +1,8 @@
 /** https://refactoring.guru/design-patterns/builder */
 
-import { Address, Contact, Phone } from "../../types/contacts";
-import { Person } from "../../types/person";
-import { Shop } from "../../types/shop";
+import { Address, Contact, Phone } from "../../shared/types/contacts";
+import { Person } from "../../shared/types/person";
+import { Shop } from "../../shared/types/shop";
 
 export type ContactBuilder = {
     setPrimaryAddress: (address: Address) => void,

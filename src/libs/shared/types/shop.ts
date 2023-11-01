@@ -2,7 +2,7 @@ import { ObjectId } from 'mongodb';
 import { z } from 'zod';
 import { fromZodError } from 'zod-validation-error';
 import { util } from '../utils/util';
-import { mongodbUtil } from './../../core/db/mongodb/mongodb-util';
+import { mongodbUtil } from './../../server/core/db/mongodb/mongodb-util';
 import { PersonEntitySchema, personConverter } from './person';
 
 export const ShopEntitySchema = z.object({

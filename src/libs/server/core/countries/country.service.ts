@@ -1,8 +1,8 @@
 import countryByAbbreviation from "country-json/src/country-by-abbreviation.json";
 import countryByCallingCode from "country-json/src/country-by-calling-code.json";
 import countryByCurrencyCode from "country-json/src/country-by-currency-code.json";
-import { Country } from "../../shared/types/countries";
 import { masterDataRepository } from "../repositories/master-data-repository";
+import { Country } from "./../../../shared/types/countries";
 import commonCurrency from "./../../data/common-currency.json";
 
 class CountryService {

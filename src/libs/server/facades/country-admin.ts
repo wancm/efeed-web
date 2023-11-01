@@ -1,6 +1,6 @@
-import { masterDataRepository } from "../../core/repositories/master-data-repository";
-import { cacheService } from "../cache/cache-service";
-import { Country } from "../types/countries";
+import { cacheService } from "./../../shared/cache/cache-service";
+import { Country } from "./../../shared/types/countries";
+import { masterDataRepository } from "./../core/repositories/master-data-repository";
 
 class CountryAdmin {
 

@@ -1,5 +1,5 @@
 import { Db } from 'mongodb';
-import { appSettings } from './../../../appSettings';
+import { appSettings } from './../../../../appSettings';
 import { mongoDbClient } from './mongodb-client';
 
 class MongoDbDatabase {
