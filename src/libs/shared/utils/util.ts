@@ -145,7 +145,7 @@ class Util {
      * @returns empty string if input is null
      * @returns the input
      */
-    toNullStr(val?: string | null | undefined): string {
+    toNullString(val?: string | null | undefined): string {
         if (util.isStrEmpty(val)) return '';
         return val as string;
     }
@@ -393,14 +393,14 @@ if (import.meta.vitest) {
             console.timeEnd(test11);
         })
 
-        const test12 = '.toNullStr';
+        const test12 = '.toNullString';
         test.concurrent(test12, async () => {
             console.time(test12);
 
-            expect(util.toNullStr(undefined)).toEqual('');
-            expect(util.toNullStr(null)).toEqual('');
-            expect(util.toNullStr('')).toEqual('');
-            expect(util.toNullStr('123')).toEqual('123');
+            expect(util.toNullString(undefined)).toEqual('');
+            expect(util.toNullString(null)).toEqual('');
+            expect(util.toNullString('')).toEqual('');
+            expect(util.toNullString('123')).toEqual('123');
 
             console.timeEnd(test12);
         })

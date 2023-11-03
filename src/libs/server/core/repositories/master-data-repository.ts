@@ -3,7 +3,7 @@ import { Collection, ObjectId } from 'mongodb';
 import { appMongodb } from '../db/mongodb/mongodb-database';
 import { MONGO_DB_CONSTANT } from '../db/mongodb/mongodb_const';
 import { Country } from './../../../shared/types/countries';
-import './../../../shared/utils/extensions';
+import '../../../shared/bootstrap-extensions';
 
 class MasterDataRepository {
 

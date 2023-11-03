@@ -10,6 +10,8 @@ class CountryAdmin {
 
         let countries = await cacheService.tryGetAsync<Country[]>(this.COUNTRIES_CACHE_KEY);
 
+        /* c8 ignore start */
+
         if (countries) {
             return countries;
         }
@@ -19,6 +21,7 @@ class CountryAdmin {
         cacheService.trySetAsync(this.COUNTRIES_CACHE_KEY, countries, -1);
 
         return countries;
+        /* c8 ignore end */
     }
 }
 

@@ -5,7 +5,7 @@ import { appSettings } from './../../../../libs/appSettings';
 import { AddressTypes, PhoneTypes } from './../../../shared/types/contacts';
 import { PersonTypes } from './../../../shared/types/person';
 import { Shop, ShopEntity, shopConverter } from './../../../shared/types/shop';
-import './../../../shared/utils/extensions';
+import '../../../shared/bootstrap-extensions';
 import { testHelper } from '../../../shared/utils/test-helper';
 import { masterDataRepository } from './master-data-repository';
 
