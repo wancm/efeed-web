@@ -1,6 +1,6 @@
 import { BusinessUnit } from "../../shared/types/business-unit";
-import { businessUnitRepository } from "../core/repositories/business-unit-repository";
-import { appSettings } from "./../../appSettings";
+import { businessUnitRepository } from "../core/repositories/business-units-repository";
+import { appSettings } from "@/libs/appSettings";
 import { CommonBusinessUnitBuilder } from "./common-business-unit-builder";
 
 class BusinessUnitDirector {

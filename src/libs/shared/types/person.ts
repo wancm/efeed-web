@@ -16,7 +16,7 @@ export const PersonEntitySchema = z.object({
     firstName: z.string().max(100).optional(),
     dateOfBirth: z.string().min(8).optional(),
     email: z.string().min(3).max(200),
-    contact: ContactEntitySchema,
+    contact: ContactEntitySchema.optional(),
     type: z.nativeEnum(PersonTypes),
 })
 
@@ -35,7 +35,7 @@ export const personConverter = {
             firstName: dto.firstName,
             dateOfBirth: dto.dateOfBirth,
             email: dto.email,
-            contact: contactConverter.toEntity(dto.contact),
+            contact: dto.contact ? contactConverter.toEntity(dto.contact) : undefined,
             type: dto.type
         };
 
@@ -59,7 +59,7 @@ export const personConverter = {
             firstName: entity.firstName,
             dateOfBirth: entity.dateOfBirth,
             email: entity.email,
-            contact: contactConverter.toDTO(entity.contact),
+            contact: entity.contact ? contactConverter.toDTO(entity.contact) : undefined,
             type: entity.type
         };
 

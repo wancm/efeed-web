@@ -2,10 +2,9 @@ import { ObjectId } from 'mongodb';
 import { z } from 'zod';
 import { fromZodError } from 'zod-validation-error';
 import { util } from '../utils/util';
-
-import { mongodbUtil } from './../../server/core/db/mongodb/mongodb-util';
-import { PersonEntitySchema, personConverter } from './person';
-import { ProductEntitySchema, productConverter } from './product';
+import { mongodbUtil } from '@/libs/server/core/db/mongodb/mongodb-util';
+import { Person, personConverter, PersonEntitySchema } from './person';
+import { Product, productConverter, ProductEntitySchema } from './product';
 
 // https://zzdjk6.medium.com/typescript-zod-and-mongodb-a-guide-to-orm-free-data-access-layers-f83f39aabdf3
 
@@ -42,6 +41,11 @@ export type BusinessUnit = z.infer<typeof BusinessUnitDTOSchema>;
 
 export const businessUnitConverter = {
     toEntity(dto: BusinessUnit): BusinessUnitEntity {
+
+        const persons: Person[] = dto.persons ?? [];
+
+        const products: Product[] = dto.products ?? [];
+
         const shopIds: ObjectId[] = dto.shopIds && !util.isArrEmpty(dto.shopIds) ?
             dto.shopIds.map(id => new ObjectId(id)) :
             [];
@@ -50,8 +54,8 @@ export const businessUnitConverter = {
             _id: mongodbUtil.genId(dto.id),
             name: dto.name,
             code: dto.code,
-            persons: dto.persons?.map(p => personConverter.toEntity(p)),
-            products: dto.products?.map(p => productConverter.toEntity(p)),
+            persons: persons.map(p => personConverter.toEntity(p)),
+            products: products.map(p => productConverter.toEntity(p)),
             createdBy: '',
             shopIds
         };

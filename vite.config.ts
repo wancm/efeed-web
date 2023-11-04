@@ -1,5 +1,5 @@
 import { defineConfig } from 'vitest/config';
-
+import { resolve } from "node:path";
 
 export default defineConfig({
     define: {
@@ -10,5 +10,8 @@ export default defineConfig({
         coverage: {
             reporter: ['text', 'html']
         }
-    }
+    },
+    resolve: {
+        alias: [{ find: "@", replacement: resolve(__dirname, "./src") }],
+    },
 });

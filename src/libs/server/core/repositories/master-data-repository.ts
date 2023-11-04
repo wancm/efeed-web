@@ -1,14 +1,12 @@
-
 import { Collection, ObjectId } from 'mongodb';
 import { appMongodb } from '../db/mongodb/mongodb-database';
 import { MONGO_DB_CONSTANT } from '../db/mongodb/mongodb_const';
-import { Country } from './../../../shared/types/countries';
+import { Country } from '@/libs/shared/types/countries';
 import '../../../shared/bootstrap-extensions';
 
 class MasterDataRepository {
 
     private isStartup = false;
-    private isThreadLock = false;
 
     private readonly COUNTRIES_MASTER_DATA: string = 'countries_master_data';
     private masterDataCollection: Collection<any>;
@@ -105,5 +103,3 @@ if (import.meta.vitest) {
         })
     })
 }
-
-
