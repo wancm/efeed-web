@@ -1,44 +1,50 @@
 import { z } from "zod"
-import { fromZodError } from "zod-validation-error"
-import { ImageDtoSchema, ImageEntitySchema } from "./image"
 import { mongodbUtil } from "@/libs/server/core/db/mongodb/mongodb-util"
+import { fromZodError } from "zod-validation-error"
+import { Product, ProductDtoSchema, ProductEntity, ProductEntitySchema } from "@/libs/shared/types/product"
 
-const MainProductEntitySchema = z.object({
-    id: z.string().nullable(),
-    name: z.string().max(100).min(3),
-    code: z.string().max(20).optional(),
-    price: z.number().default(0),
-    currencyCode: z.string().max(3),
-    image: ImageEntitySchema.optional()
+export const CurrencyEntitySchema = z.object({
+    code: z.string().min(2).max(3),
+    minorUnit: z.union([z.literal(2), z.literal(3)]).default(2),
+    symbol: z.string().optional(),
+    name: z.string().optional(),
+    symbolNative: z.string().optional(),
+    rounding: z.string().optional(),
+    namePlural: z.string().optional()
 })
 
-const SubProductEntitySchema = z.object({
-    products: z.array(MainProductEntitySchema).optional()
+export const CountryEntitySchema = z.object({
+    code: z.string().min(2),
+    name: z.string().max(200),
+    currency: CurrencyEntitySchema.optional(),
+    callingCode: z.number().optional()
 })
 
-export const ProductEntitySchema = MainProductEntitySchema.merge(SubProductEntitySchema)
+// // Database Entities
+// export type CurrencyEntity = z.infer<typeof CurrencyEntitySchema>
+// export type CountryEntity = z.infer<typeof CountryEntitySchema>
 
-// Database Entities
-export type ProductEntity = z.infer<typeof ProductEntitySchema>
-
-
-const MainProductDtoSchema = z.object({
-    id: z.string().nullish(),
+export const CurrencyDtoSchema = z.object({
+    code: z.string(),
+    minorUnit: CurrencyEntitySchema.shape.minorUnit,
+    symbol: z.string().nullish(),
     name: z.string().nullish(),
-    code: z.string().nullish(),
-    price: z.number().nullish(),
-    currencyCode: z.string().nullish(),
-    image: ImageDtoSchema.nullish()
+    symbolNative: z.string().nullish(),
+    rounding: z.string().nullish(),
+    namePlural: z.string().nullish()
 })
 
-const SubProductDtoSchema = z.object({
-    products: z.array(MainProductDtoSchema).optional()
+export const CountryDtoSchema = z.object({
+    code: z.string(),
+    name: z.string().nullish(),
+    currency: CurrencyDtoSchema.nullish(),
+    callingCode: z.number().nullish()
 })
-
-export const ProductDtoSchema = MainProductDtoSchema.merge(SubProductDtoSchema)
 
 // Application DTO
-export type Product = z.infer<typeof ProductDtoSchema>
+// cm: reusing entity schema here since both are exactly the same
+export type Currency = z.infer<typeof CurrencyDtoSchema>
+export type Country = z.infer<typeof CountryDtoSchema>
 
 export const productConverter = {
     toEntity(dto: Product): ProductEntity {
@@ -86,4 +92,3 @@ export const productConverter = {
         }
     },
 }
-

@@ -1,10 +1,10 @@
-import { z } from 'zod';
+import { z } from "zod"
 
 export enum UrlTypes {
-    Undefined = 'Undefined',
-    Main = 'Main',
-    Thumbnail = 'Thumbnail',
-    Min = 'Min',
+    Undefined = "Undefined",
+    Main = "Main",
+    Thumbnail = "Thumbnail",
+    Min = "Min",
 }
 
 const UrlEntitySchema = z.object({
@@ -13,7 +13,7 @@ const UrlEntitySchema = z.object({
 })
 
 export const ImageEntitySchema = z.object({
-    alt: z.string().min(1).max(20).optional(),
+    alt: z.string().min(1).max(20).nullish(),
     urls: z.array(UrlEntitySchema)
 })
 
@@ -21,8 +21,17 @@ export const ImageEntitySchema = z.object({
 export type ImageEntity = z.infer<typeof ImageEntitySchema>
 export type UrlEntity = z.infer<typeof UrlEntitySchema>
 
+
+const UrlDtoSchema = z.object({
+    uri: z.string().nullish(),
+    type: z.nativeEnum(UrlTypes).optional()
+})
+
+export const ImageDtoSchema = z.object({
+    alt: z.string().nullish(),
+    urls: z.array(UrlEntitySchema).optional()
+})
+
 // Application DTO
-// cm: reusing entity schema here since both are exactly the same
-// cm: please be noted the name 'Image' is reserved key word for HTML DOM, therefore, ImageDTO here :)
-export type ImageDTO = z.infer<typeof ImageEntitySchema>
-export type Url = z.infer<typeof UrlEntitySchema>
+export type ImageDTO = z.infer<typeof ImageDtoSchema>
+export type Url = z.infer<typeof UrlDtoSchema>

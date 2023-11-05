@@ -1,10 +1,10 @@
-import { ObjectId } from 'mongodb';
-import { z } from 'zod';
-import { fromZodError } from 'zod-validation-error';
-import { util } from '../utils/util';
-import { mongodbUtil } from '@/libs/server/core/db/mongodb/mongodb-util';
-import { Person, personConverter, PersonEntitySchema } from './person';
-import { Product, productConverter, ProductEntitySchema } from './product';
+import { ObjectId } from "mongodb"
+import { z } from "zod"
+import { fromZodError } from "zod-validation-error"
+import { util } from "../utils/util"
+import { mongodbUtil } from "@/libs/server/core/db/mongodb/mongodb-util"
+import { Person, personConverter, PersonDtoSchema, PersonEntitySchema } from "./person"
+import { Product, productConverter, ProductDtoSchema, ProductEntitySchema } from "./product"
 
 // https://zzdjk6.medium.com/typescript-zod-and-mongodb-a-guide-to-orm-free-data-access-layers-f83f39aabdf3
 
@@ -29,26 +29,26 @@ export type BusinessUnitEntity = z.infer<typeof BusinessUnitEntitySchema>
 
 // Application DTO
 export const BusinessUnitDTOSchema = z.object({
-    id: z.string().optional(),
+    id: z.string().nullish(),
     name: z.string().nullish(),
     code: z.string().nullish(),
-    persons: BusinessUnitEntitySchema.shape.persons.nullish(),
-    products: BusinessUnitEntitySchema.shape.products.nullish(),
+    persons: z.array(PersonDtoSchema).nullish(),
+    products: z.array(ProductDtoSchema).nullish(),
     shopIds: z.array(z.string()).optional(),
-});
+})
 
 export type BusinessUnit = z.infer<typeof BusinessUnitDTOSchema>;
 
 export const businessUnitConverter = {
     toEntity(dto: BusinessUnit): BusinessUnitEntity {
 
-        const persons: Person[] = dto.persons ?? [];
+        const persons: Person[] = dto.persons ?? []
 
-        const products: Product[] = dto.products ?? [];
+        const products: Product[] = dto.products ?? []
 
-        const shopIds: ObjectId[] = dto.shopIds && !util.isArrEmpty(dto.shopIds) ?
-            dto.shopIds.map(id => new ObjectId(id)) :
-            [];
+        const shopIds: ObjectId[] = util.isArrEmpty(dto.shopIds) ?
+            [] :
+            dto.shopIds.map(id => new ObjectId(id))
 
         const businessUnitEntity = {
             _id: mongodbUtil.genId(dto.id),
@@ -56,18 +56,18 @@ export const businessUnitConverter = {
             code: dto.code,
             persons: persons.map(p => personConverter.toEntity(p)),
             products: products.map(p => productConverter.toEntity(p)),
-            createdBy: '',
+            createdBy: "",
             shopIds
-        };
+        }
 
-        const result = BusinessUnitEntitySchema.safeParse(businessUnitEntity);
+        const result = BusinessUnitEntitySchema.safeParse(businessUnitEntity)
         if (result.success) {
-            return result.data;
+            return result.data
             /* c8 ignore start */
         } else {
             const zodError = fromZodError(result.error)
-            console.log('validation error', JSON.stringify(zodError))
-            throw new Error('BusinessUnitEntitySchema validation error')
+            console.log("validation error", JSON.stringify(zodError))
+            throw new Error("BusinessUnitEntitySchema validation error")
             /* c8 ignore end */
         }
     },
@@ -80,17 +80,17 @@ export const businessUnitConverter = {
             persons: entity.persons?.map(p => personConverter.toDTO(p)),
             products: entity.products?.map(p => productConverter.toDTO(p)),
             shopIds: entity.shopIds.map(id => id.toHexString())
-        };
+        }
 
-        const result = BusinessUnitDTOSchema.safeParse(businessUnitDTO);
+        const result = BusinessUnitDTOSchema.safeParse(businessUnitDTO)
         if (result.success) {
-            return result.data;
+            return result.data
             /* c8 ignore start */
         } else {
             const zodError = fromZodError(result.error)
-            console.log('validation error', JSON.stringify(zodError))
-            throw new Error('BusinessUnitDTOSchema validation error')
+            console.log("validation error", JSON.stringify(zodError))
+            throw new Error("BusinessUnitDTOSchema validation error")
             /* c8 ignore end */
         }
     },
-};
+}

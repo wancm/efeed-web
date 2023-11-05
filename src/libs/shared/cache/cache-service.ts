@@ -1,4 +1,4 @@
-import { util } from "../utils/util";
+import { util } from "../utils/util"
 
 type LocalCache = {
     expired: number,
@@ -7,21 +7,21 @@ type LocalCache = {
 
 class CacheService {
 
-    private readonly defaultTTL = 30 * 60 * 1000;
-    private readonly cacheExpiringInterval = 1000;
-    private readonly cacheMap = new Map<string, any>();
+    private readonly defaultTTL = 30 * 60 * 1000
+    private readonly cacheExpiringInterval = 1000
+    private readonly cacheMap = new Map<string, any>()
 
     constructor() {
         /* c8 ignore start */
         setTimeout(async () => {
-            await this.cacheExpiringAsync();
-        }, this.cacheExpiringInterval);
+            await this.cacheExpiringAsync()
+        }, this.cacheExpiringInterval)
         /* c8 ignore end */
     }
 
     /**
      * Cache storing
-     * @param key key 
+     * @param key key
      * @param data data
      * @param ttl time to live second(s). -1 if never expired
      * @returns 1 if succeed
@@ -29,25 +29,25 @@ class CacheService {
      */
     async trySetAsync(key: string, data: any, ttl: number = this.defaultTTL): Promise<number> {
         try {
-            let expired = -1;
+            let expired = -1
 
             if (ttl > 0) {
-                expired = util.timestampUtcNow() + ttl * 1000;
+                const timestamp = util.timestampUtcNow()
+                expired = timestamp + (ttl * 1000)
             }
 
             const cache: LocalCache = {
                 expired,
                 data
-            };
+            }
 
-            this.cacheMap.set(key, cache);
+            this.cacheMap.set(key, cache)
 
-            return 1;
+            return 1
 
             /* c8 ignore start */
-        }
-        catch (err) {
-            return -1;
+        } catch (err) {
+            return -1
             /* c8 ignore end */
         }
     }
@@ -61,10 +61,10 @@ class CacheService {
     async tryGetAsync<T>(key: string): Promise<T> {
 
         if (this.cacheMap.has(key)) {
-            return this.cacheMap.get(key).data as T;
+            return this.cacheMap.get(key).data as T
         }
 
-        return undefined as T;
+        return undefined as T
     }
 
     /**
@@ -76,14 +76,13 @@ class CacheService {
     async tryExpiredAsync(key: string): Promise<number> {
         try {
             if (this.cacheMap.has(key)) {
-                this.cacheMap.delete(key);
-                return 1;
+                this.cacheMap.delete(key)
+                return 1
             }
-            return 0;
+            return 0
 
-        }
-        catch (err) {
-            return -1;
+        } catch (err) {
+            return -1
         }
     }
 
@@ -95,74 +94,71 @@ class CacheService {
             if (value.expired > -1) {
                 if (now > value.expired) {
                     await this.tryExpiredAsync(key)
+                    console.log(`'${key}' cache expired.`)
                 }
             }
         })
 
         setTimeout(async () => {
-            await this.cacheExpiringAsync();
-        }, this.cacheExpiringInterval);
+            await this.cacheExpiringAsync()
+        }, this.cacheExpiringInterval)
     }
 
 }
 
-export const cacheService = new CacheService();
+export const cacheService = new CacheService()
 
 if (import.meta.vitest) {
-    const { describe, expect, test, beforeEach } = import.meta.vitest;
+    const { describe, expect, test, beforeEach } = import.meta.vitest
 
-    beforeEach(async (context) => {
+    beforeEach(async (_) => {
     })
 
     describe("#cache-service.ts", () => {
 
-        const test1 = '.trySetAsync <=> tryGetAsync';
+        const test1 = ".trySetAsync <=> tryGetAsync"
         test.concurrent(test1, async () => {
-            console.time(test1);
+            console.time(test1)
 
-            const value = 'value1';
+            const value = "value1"
 
-            cacheService.trySetAsync(test1, value);
+            await cacheService.trySetAsync(test1, value)
 
-            expect(await cacheService.tryGetAsync(test1)).toEqual(value);
+            expect(await cacheService.tryGetAsync(test1)).toEqual(value)
 
-            console.timeEnd(test1);
+            console.timeEnd(test1)
         })
 
-        const test2 = '.trySetAsync expired';
+        const test2 = ".trySetAsync expired"
         test.concurrent(test2, async () => {
-            console.time(test2);
+            console.time(test2)
 
-            const value = 'value2';
+            const value = "value2"
 
-            cacheService.trySetAsync(test2, value, 2);
+            await cacheService.trySetAsync(test2, value, 1)
 
-            expect(await cacheService.tryGetAsync(test2)).toEqual(value);
+            expect(await cacheService.tryGetAsync(test2)).toEqual(value)
 
-            setTimeout(async () => {
-                console.log(`cache-service trySetAsync ${test2} expiring`)
-                expect(await cacheService.tryGetAsync(test2)).toBeUndefined();
-            }, 2100);
+            await util.delay(2000)
 
-            console.timeEnd(test2);
+            expect(await cacheService.tryGetAsync(test2)).toBeUndefined()
+
+            console.timeEnd(test2)
         })
 
-        const test3 = '.trySetAsync never expired';
+        const test3 = ".trySetAsync never expired"
         test.concurrent(test3, async () => {
-            console.time(test3);
+            console.time(test3)
 
-            const value = 'value3';
+            const value = "value3"
 
-            cacheService.trySetAsync(test2, value, -1);
+            await cacheService.trySetAsync(test3, value, -1)
 
-            expect(await cacheService.tryGetAsync(test2)).toEqual(value);
+            expect(await cacheService.tryGetAsync(test3)).toEqual(value)
 
-            setTimeout(async () => {
-                console.log(`cache-service trySetAsync ${test3} expiring`)
-                expect(await cacheService.tryGetAsync(test3)).toBeUndefined();
-            }, 1000);
+            await util.delay(2000)
 
-            console.timeEnd(test3);
+            console.timeEnd(test3)
         })
 
     })

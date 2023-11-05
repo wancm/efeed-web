@@ -8,18 +8,25 @@ export enum ZodPropConfigType {
 
 declare global {
     interface String {
-        equalCaseIgnored(compareVal: string): boolean;
+        /**
+         * String case ignored equality comparison.
+         * @param compareVal string to compare with
+         */
+        isEqual(compareVal: string): boolean;
+
         isNilOrEmpty(): boolean;
+
+        toNullString(): string;
     }
 
     interface Object {
-        toNullString(): string;
         zSchemaMin(): number;
+
         zSchemaMax(): number;
     }
 }
 
-String.prototype.equalCaseIgnored = function (compareVal: string): boolean {
+String.prototype.isEqual = function (compareVal: string): boolean {
     if (this && !compareVal) return false;
     if (!this && compareVal) return false;
 
@@ -31,7 +38,7 @@ String.prototype.isNilOrEmpty = function (): boolean {
     return this.trim().length === 0;
 }
 
-Object.prototype.toNullString = function (): string {
+String.prototype.toNullString = function (): string {
     if (util.isNil(this)) return '';
     return util.toNullString(this as string);
 }
@@ -56,22 +63,22 @@ const readZodSchema = (z: any, prop: string): any => {
     return undefined;
 }
 
-export { };
+export {};
 
 if (import.meta.vitest) {
     const { describe, expect, test, vi } = import.meta.vitest;
 
     describe("# extension.ts", () => {
-        const test1 = '.equalCaseIgnored()';
+        const test1 = '.isEqual()';
         test.concurrent(test1, async () => {
             console.time(test1);
 
-            expect('undefined'.equalCaseIgnored('undefined')).toBeTruthy();
-            expect('undefined'.equalCaseIgnored('UnDeFiNeD')).toBeTruthy();
-            expect(''.equalCaseIgnored('')).toBeTruthy();
-            expect(' '.equalCaseIgnored(' ')).toBeTruthy();
+            expect('undefined'.isEqual('undefined')).toBeTruthy();
+            expect('undefined'.isEqual('UnDeFiNeD')).toBeTruthy();
+            expect(''.isEqual('')).toBeTruthy();
+            expect(' '.isEqual(' ')).toBeTruthy();
 
-            expect(''.equalCaseIgnored('    ')).toBeFalsy();
+            expect(''.isEqual('    ')).toBeFalsy();
 
             console.timeEnd(test1);
         })

@@ -1,9 +1,9 @@
-import { ObjectId } from 'mongodb';
-import { z } from 'zod';
-import { fromZodError } from 'zod-validation-error';
-import { util } from '../utils/util';
-import { mongodbUtil } from './../../server/core/db/mongodb/mongodb-util';
-import { PersonEntitySchema, personConverter } from './person';
+import { ObjectId } from "mongodb"
+import { z } from "zod"
+import { fromZodError } from "zod-validation-error"
+import { util } from "../utils/util"
+import { mongodbUtil } from "@/libs/server/core/db/mongodb/mongodb-util"
+import { PersonEntitySchema, personConverter, PersonDtoSchema } from "./person"
 
 export const ShopEntitySchema = z.object({
     _id: z.instanceof(ObjectId),
@@ -28,33 +28,33 @@ export const ShopDTOSchema = z.object({
     businessUnitId: z.string().optional(),
     name: z.string().nullish(),
     code: z.string().nullish(),
-    persons: ShopEntitySchema.shape.persons.nullish(),
+    persons: z.array(PersonDtoSchema).nullish(),
     productIds: z.array(z.string()).optional(),
-});
+})
 
 export type Shop = z.infer<typeof ShopDTOSchema>;
 
 export const shopConverter = {
     toEntity(dto: Shop): ShopEntity {
-        const productIds = dto.productIds ?? [];
+
         const shopEntity = {
             _id: mongodbUtil.genId(dto.id),
             businessUnitId: new ObjectId(dto.businessUnitId),
             name: dto.name,
             code: dto.code,
             persons: dto.persons?.map(p => personConverter.toEntity(p)),
-            createdBy: '',
-            productIds
-        };
+            createdBy: "",
+            productIds: dto.productIds ?? []
+        }
 
-        const result = ShopEntitySchema.safeParse(shopEntity);
+        const result = ShopEntitySchema.safeParse(shopEntity)
         if (result.success) {
-            return result.data;
+            return result.data
             /* c8 ignore start */
         } else {
             const zodError = fromZodError(result.error)
-            console.log('validation error', JSON.stringify(zodError))
-            throw new Error('ShopEntitySchema validation error')
+            console.log("validation error", JSON.stringify(zodError))
+            throw new Error("ShopEntitySchema validation error")
             /* c8 ignore end */
         }
     },
@@ -68,17 +68,18 @@ export const shopConverter = {
             code: entity.code,
             persons: entity.persons?.map(p => personConverter.toDTO(p)),
             productIds: entity.productIds
-        };
+        }
 
-        const result = ShopDTOSchema.safeParse(shopDTO);
+        const result = ShopDTOSchema.safeParse(shopDTO)
         if (result.success) {
-            return result.data;
+            return result.data
             /* c8 ignore start */
         } else {
             const zodError = fromZodError(result.error)
-            console.log('validation error', JSON.stringify(zodError))
-            throw new Error('ShopDTOSchema validation error')
+            console.log("validation error", JSON.stringify(zodError))
+            throw new Error("ShopDTOSchema validation error")
             /* c8 ignore end */
         }
     },
-};
+}
+
