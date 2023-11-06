@@ -1,7 +1,7 @@
 import { z } from "zod"
 import { PersonTypes } from "@/libs/shared/types/person"
 import { BusinessUnit, BusinessUnitDTOSchema } from "@/libs/shared/types/business-unit"
-import { businessUnitRepository } from "@/libs/server/core/repositories/business-units-repository"
+import { businessUnitRepository } from "@/libs/server/data/repositories/business-units-repository"
 import { fromZodError } from "zod-validation-error"
 import { appSettings } from "@/libs/appSettings"
 import { testHelper } from "@/libs/shared/utils/test-helper"

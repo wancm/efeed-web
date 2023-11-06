@@ -2,9 +2,9 @@ import { Collection, ObjectId } from "mongodb"
 import { appSettings } from "@/libs/appSettings"
 import { BusinessUnit, businessUnitConverter, BusinessUnitEntity } from "@/libs/shared/types/business-unit"
 import { testHelper } from "@/libs/shared/utils/test-helper"
-import { appMongodb } from "@/libs/server/core/db/mongodb/mongodb-database"
-import { MONGO_DB_CONSTANT } from "@/libs/server/core/db/mongodb/mongodb_const"
-import { masterDataRepository } from "@/libs/server/core/repositories/master-data-repository"
+import { appMongodb } from "@/libs/server/data/mongodb/mongodb-database"
+import { MONGO_DB_CONSTANT } from "@/libs/server/data/mongodb/mongodb_const"
+import { masterDataRepository } from "@/libs/server/data/repositories/master-data-repository"
 
 
 class BusinessUnitsRepository {
@@ -105,7 +105,7 @@ if (import.meta.vitest) {
 
         //
         const test1 = ".saveAsync, loadOneAsync, loadManyAsync"
-        test.concurrent(test1, async () => {
+        test(test1, async () => {
             console.time(test1)
 
             const countryCode = "MY"

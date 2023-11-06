@@ -5,8 +5,8 @@ import { testHelper } from "@/libs/shared/utils/test-helper"
 import { masterDataRepository } from "./master-data-repository"
 import { Product, productConverter, ProductEntity } from "@/libs/shared/types/product"
 import { UrlTypes } from "@/libs/shared/types/image"
-import { MONGO_DB_CONSTANT } from "@/libs/server/core/db/mongodb/mongodb_const"
-import { appMongodb } from "@/libs/server/core/db/mongodb/mongodb-database"
+import { MONGO_DB_CONSTANT } from "@/libs/server/data/mongodb/mongodb_const"
+import { appMongodb } from "@/libs/server/data/mongodb/mongodb-database"
 
 class ProductRepository {
 
@@ -116,7 +116,7 @@ if (import.meta.vitest) {
     describe("#product-repository.ts", () => {
 
         const test1 = ".saveAsync, loadOneAsync, loadManyAsync"
-        test.concurrent(test1, async () => {
+        test(test1, async () => {
             console.time(test1)
 
             const countryCode = "MY"

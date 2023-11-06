@@ -1,7 +1,6 @@
 import { z } from "zod"
 import { fromZodError } from "zod-validation-error"
-
-import { mongodbUtil } from "@/libs/server/core/db/mongodb/mongodb-util"
+import { mongodbUtil } from "@/libs/server/data/mongodb/mongodb-util"
 import { ObjectId } from "mongodb"
 import { util } from "@/libs/shared/utils/util"
 import { appSettings } from "@/libs/appSettings"

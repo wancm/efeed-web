@@ -1,11 +1,10 @@
 import { z } from "zod"
 import { fromZodError } from "zod-validation-error"
-import { contactConverter, ContactDtoSchema, ContactEntitySchema } from "./contacts"
-import { mongodbUtil } from "@/libs/server/core/db/mongodb/mongodb-util"
+import { mongodbUtil } from "@/libs/server/data/mongodb/mongodb-util"
 import { ObjectId } from "mongodb"
 import { util } from "@/libs/shared/utils/util"
 import { appSettings } from "@/libs/appSettings"
-import { create } from "domain"
+import { contactConverter, ContactDtoSchema, ContactEntitySchema } from "@/libs/shared/types/contacts"
 
 export enum PersonTypes {
     Undefined = "Undefined",

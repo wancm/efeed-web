@@ -1,6 +1,7 @@
 import { Db } from "mongodb"
 import { appSettings } from "@/libs/appSettings"
-import { mongoDbClient } from "./mongodb-client"
+import { mongoDbClient } from "@/libs/server/data/mongodb/mongodb-client"
+
 
 class MongoDbDatabase {
 

@@ -1,9 +1,9 @@
 import { Collection, ObjectId } from "mongodb"
-import { appMongodb } from "../db/mongodb/mongodb-database"
-import { MONGO_DB_CONSTANT } from "../db/mongodb/mongodb_const"
+import { appMongodb } from "@/libs/server/data/mongodb/mongodb-database"
+import { MONGO_DB_CONSTANT } from "@/libs/server/data/mongodb/mongodb_const"
 import { Country } from "@/libs/shared/types/country"
-import "../../../shared/extensions"
-import { countryService } from "@/libs/server/core/countries/country.service"
+import "@/libs/shared/extensions"
+import { countryService } from "@/libs/server/logic/countries/country.service"
 import { util } from "@/libs/shared/utils/util"
 
 class MasterDataRepository {

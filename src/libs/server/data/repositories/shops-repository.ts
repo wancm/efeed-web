@@ -2,10 +2,10 @@ import { Collection, ObjectId, SortDirection } from "mongodb"
 import { appSettings } from "@/libs/appSettings"
 import { Shop, shopConverter, ShopEntity } from "@/libs/shared/types/shop"
 import { testHelper } from "@/libs/shared/utils/test-helper"
-import { masterDataRepository } from "./master-data-repository"
-import { appMongodb } from "@/libs/server/core/db/mongodb/mongodb-database"
-import { MONGO_DB_CONSTANT } from "@/libs/server/core/db/mongodb/mongodb_const"
+import { appMongodb } from "@/libs/server/data/mongodb/mongodb-database"
+import { MONGO_DB_CONSTANT } from "@/libs/server/data/mongodb/mongodb_const"
 import "@/libs/shared/extensions"
+import { masterDataRepository } from "@/libs/server/data/repositories/master-data-repository"
 
 class ShopsRepository {
 
@@ -125,7 +125,7 @@ if (import.meta.vitest) {
     describe("#shop-repository.ts", () => {
 
         const test1 = ".saveAsync, loadOneAsync, loadManyAsync"
-        test.concurrent(test1, async () => {
+        test(test1, async () => {
             console.time(test1)
 
             const countryCode = "MY"

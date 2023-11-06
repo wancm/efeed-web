@@ -1,7 +1,7 @@
 import { ZodObject } from "zod"
-import { util } from "./utils/util"
+import { util } from "@/libs/shared/utils/util"
 import { ObjectId } from "mongodb"
-import { mongodbUtil } from "@/libs/server/core/db/mongodb/mongodb-util"
+import { mongodbUtil } from "@/libs/server/data/mongodb/mongodb-util"
 
 export enum ZodPropConfigType {
     min = "min",

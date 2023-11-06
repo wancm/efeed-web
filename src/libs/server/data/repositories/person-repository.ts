@@ -1,13 +1,13 @@
 import { Collection, ObjectId, SortDirection } from "mongodb"
-import { appMongodb } from "../db/mongodb/mongodb-database"
-import { MONGO_DB_CONSTANT } from "../db/mongodb/mongodb_const"
+import { appMongodb } from "@/libs/server/data/mongodb/mongodb-database"
+import { MONGO_DB_CONSTANT } from "@/libs/server/data/mongodb/mongodb_const"
 import { appSettings } from "@/libs/appSettings"
 import "@/libs/shared/extensions"
 import { testHelper } from "@/libs/shared/utils/test-helper"
 import { masterDataRepository } from "./master-data-repository"
 import { Person, personConverter, PersonEntity, PersonTypes } from "@/libs/shared/types/person"
 import { AddressTypes, PhoneTypes } from "@/libs/shared/types/contacts"
-import { mongodbUtil } from "@/libs/server/core/db/mongodb/mongodb-util"
+import { mongodbUtil } from "@/libs/server/data/mongodb/mongodb-util"
 import { util } from "@/libs/shared/utils/util"
 
 class PersonRepository {
@@ -183,7 +183,7 @@ if (import.meta.vitest) {
     describe("#person-repository.ts", () => {
 
         const test1 = ".saveAsync, loadOneAsync, loadManyAsync"
-        test.concurrent(test1, async () => {
+        test(test1, async () => {
             console.time(test1)
 
             const countryCode = "MY"
@@ -232,7 +232,7 @@ if (import.meta.vitest) {
         }, 120000)
 
         const test2 = ".saveAsync, .findByEmailAsync, .existsEmailAsync"
-        test.concurrent(test2, async () => {
+        test(test2, async () => {
             console.time(test2)
 
             const businessUnitId = mongodbUtil.genId().toHexString()
@@ -261,7 +261,7 @@ if (import.meta.vitest) {
         }, 120000)
 
         const test3 = ".saveAsync, findByQueryTextAsync"
-        test.concurrent(test3, async () => {
+        test(test3, async () => {
             console.time(test3)
 
             const countryCode = "MY"

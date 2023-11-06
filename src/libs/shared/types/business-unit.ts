@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb"
 import { z } from "zod"
 import { fromZodError } from "zod-validation-error"
 import { util } from "@/libs/shared/utils/util"
-import { mongodbUtil } from "@/libs/server/core/db/mongodb/mongodb-util"
+import { mongodbUtil } from "@/libs/server/data/mongodb/mongodb-util"
 import { appSettings } from "@/libs/appSettings"
 
 // https://zzdjk6.medium.com/typescript-zod-and-mongodb-a-guide-to-orm-free-data-access-layers-f83f39aabdf3

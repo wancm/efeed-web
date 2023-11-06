@@ -1,8 +1,8 @@
 import { ObjectId } from "mongodb"
 
-import { BusinessUnit } from "../../shared/types/business-unit"
-import { Person } from "../../shared/types/person"
-import { BusinessUnitBuilder } from "../types/builders"
+import { BusinessUnit } from "../../../shared/types/business-unit"
+import { Person } from "../../../shared/types/person"
+import { BusinessUnitBuilder } from "@/libs/server/logic/types/builders"
 
 export class CommonBusinessUnitBuilder implements BusinessUnitBuilder {
 
