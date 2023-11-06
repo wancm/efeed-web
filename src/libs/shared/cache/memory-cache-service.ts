@@ -5,7 +5,7 @@ type LocalCache = {
     data: any
 }
 
-class CacheService {
+class MemoryCacheService {
 
     private readonly defaultTTL = 30 * 60 * 1000
     private readonly cacheExpiringInterval = 1000
@@ -106,7 +106,7 @@ class CacheService {
 
 }
 
-export const cacheService = new CacheService()
+export const cacheService = new MemoryCacheService()
 
 if (import.meta.vitest) {
     const { describe, expect, test, beforeEach } = import.meta.vitest
@@ -114,7 +114,7 @@ if (import.meta.vitest) {
     beforeEach(async (_) => {
     })
 
-    describe("#cache-service.ts", () => {
+    describe("#memory-cache-service.ts", () => {
 
         const test1 = ".trySetAsync <=> tryGetAsync"
         test.concurrent(test1, async () => {

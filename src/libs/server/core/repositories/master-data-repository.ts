@@ -2,7 +2,9 @@ import { Collection, ObjectId } from "mongodb"
 import { appMongodb } from "../db/mongodb/mongodb-database"
 import { MONGO_DB_CONSTANT } from "../db/mongodb/mongodb_const"
 import { Country } from "@/libs/shared/types/country"
-import "../../../shared/bootstrap-extensions"
+import "../../../shared/extensions"
+import { countryService } from "@/libs/server/core/countries/country.service"
+import { util } from "@/libs/shared/utils/util"
 
 class MasterDataRepository {
 
@@ -43,6 +45,12 @@ class MasterDataRepository {
             }, { name: "identifier_asc" })
 
             console.log(`${MONGO_DB_CONSTANT.COLLECTION_MASTER_DATA} db collection indexes created: ${indexCreatedResult} `)
+        }
+
+        const countries = await this.loadCountriesAsync()
+
+        if (util.isArrEmpty(countries)) {
+            await countryService.refreshCountriesMasterDataAsync()
         }
 
         this.isStartup = true

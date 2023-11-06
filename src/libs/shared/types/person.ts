@@ -2,6 +2,10 @@ import { z } from "zod"
 import { fromZodError } from "zod-validation-error"
 import { contactConverter, ContactDtoSchema, ContactEntitySchema } from "./contacts"
 import { mongodbUtil } from "@/libs/server/core/db/mongodb/mongodb-util"
+import { ObjectId } from "mongodb"
+import { util } from "@/libs/shared/utils/util"
+import { appSettings } from "@/libs/appSettings"
+import { create } from "domain"
 
 export enum PersonTypes {
     Undefined = "Undefined",
@@ -11,44 +15,56 @@ export enum PersonTypes {
 }
 
 export const PersonEntitySchema = z.object({
-    id: z.string().optional(),
-    lastName: z.string().min(1).max(100),
+    _id: z.instanceof(ObjectId),
+    businessUnitId: z.instanceof(ObjectId),
+    email: z.string().max(200),
+    password: z.string().max(300).optional(),
+    lastName: z.string().max(100).optional(),
     firstName: z.string().max(100).optional(),
-    dateOfBirth: z.string().min(8).optional(),
-    email: z.string().min(3).max(200),
+    dateOfBirth: z.date().optional(),
     contact: ContactEntitySchema.optional(),
     type: z.nativeEnum(PersonTypes),
+    createdBy: z.instanceof(ObjectId),
+    createdDate: z.date().default(util.utcNow()),
+    updatedBy: z.instanceof(ObjectId).optional(),
+    updatedDate: z.date().default(util.utcNow()).optional(),
+    _ts: z.number().default(util.timestampUtcNow())
 })
 
 // Database Entities
 export type PersonEntity = z.infer<typeof PersonEntitySchema>
 
 export const PersonDtoSchema = z.object({
-    id: z.string().nullish(),
+    id: z.string().optional(),
+    businessUnitId: z.string(),
+    email: z.string().nullish(),
+    password: z.string().nullish(),
     lastName: z.string().nullish(),
     firstName: z.string().nullish(),
-    dateOfBirth: z.string().nullish(),
-    email: z.string().nullish(),
+    dateOfBirth: z.date().nullish(),
     contact: ContactDtoSchema.nullish(),
-    type: z.nativeEnum(PersonTypes).nullish(),
+    type: z.nativeEnum(PersonTypes).optional(),
 })
 
 // Application DTO
 export type Person = z.infer<typeof PersonDtoSchema>
 
 export const personConverter = {
-    toEntity(dto: Person): PersonEntity {
-        const personEntity = {
-            id: mongodbUtil.genId(dto.id).toHexString(),
+    toEntity(dto: Person, createdBy?: string): PersonEntity {
+        const entity = {
+            _id: mongodbUtil.genId(dto.id),
+            businessUnitId: dto.businessUnitId.toObjectId(),
+            email: dto.email,
             lastName: dto.lastName,
             firstName: dto.firstName,
             dateOfBirth: dto.dateOfBirth,
-            email: dto.email,
             contact: dto.contact ? contactConverter.toEntity(dto.contact) : undefined,
-            type: dto.type
+            type: dto.type,
+            createdBy: createdBy ? mongodbUtil.genIdIfNotNil(createdBy) : mongodbUtil.genIdIfNotNil(appSettings.systemId)
         }
 
-        const result = PersonEntitySchema.safeParse(personEntity)
+        const result = PersonEntitySchema.safeParse(entity)
+
         if (result.success) {
             return result.data
             /* c8 ignore start */
@@ -62,17 +78,19 @@ export const personConverter = {
 
     toDTO(entity: PersonEntity): Person {
 
-        const personDTO: Person = {
-            id: entity.id,
+        const dto: Person = {
+            id: entity._id.toHexString(),
+            businessUnitId: entity.businessUnitId.toHexString(),
+            email: entity.email,
             lastName: entity.lastName,
             firstName: entity.firstName,
             dateOfBirth: entity.dateOfBirth,
-            email: entity.email,
             contact: entity.contact ? contactConverter.toDTO(entity.contact) : undefined,
             type: entity.type
         }
 
-        const result = PersonDtoSchema.safeParse(personDTO)
+        const result = PersonDtoSchema.safeParse(dto)
+
         if (result.success) {
             return result.data
             /* c8 ignore start */

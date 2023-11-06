@@ -1,4 +1,4 @@
-import { cacheService } from "@/libs/shared/cache/cache-service"
+import { cacheService } from "@/libs/shared/cache/memory-cache-service"
 import { Country } from "../../shared/types/country"
 import { masterDataRepository } from "./../core/repositories/master-data-repository"
 import { util } from "@/libs/shared/utils/util"

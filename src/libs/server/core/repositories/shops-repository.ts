@@ -1,11 +1,11 @@
 import { Collection, ObjectId, SortDirection } from "mongodb"
-import { appMongodb } from "../db/mongodb/mongodb-database"
-import { MONGO_DB_CONSTANT } from "../db/mongodb/mongodb_const"
 import { appSettings } from "@/libs/appSettings"
 import { Shop, shopConverter, ShopEntity } from "@/libs/shared/types/shop"
-import "../../../shared/bootstrap-extensions"
 import { testHelper } from "@/libs/shared/utils/test-helper"
 import { masterDataRepository } from "./master-data-repository"
+import { appMongodb } from "@/libs/server/core/db/mongodb/mongodb-database"
+import { MONGO_DB_CONSTANT } from "@/libs/server/core/db/mongodb/mongodb_const"
+import "@/libs/shared/extensions"
 
 class ShopsRepository {
 
@@ -55,6 +55,12 @@ class ShopsRepository {
             }, { name: "createdDate_desc" })
 
             console.log(`${MONGO_DB_CONSTANT.COLLECTION_SHOPS} db collection indexes created: ${indexCreatedResult3} `)
+
+            const indexCreatedResult4 = await this.shopCollection.createIndex({
+                name: "text"
+            }, { name: "name_text" })
+
+            console.log(`${MONGO_DB_CONSTANT.COLLECTION_SHOPS} db collection indexes created: ${indexCreatedResult4} `)
         }
 
         this.isStartup = true
@@ -95,8 +101,7 @@ class ShopsRepository {
 
     async saveAsync(shop: Shop, createdBy: string): Promise<ObjectId> {
         // convert entity: 5.513ms
-        const entity = shopConverter.toEntity(shop)
-        entity.createdBy = createdBy
+        const entity = shopConverter.toEntity(shop, createdBy)
 
         // doc insert: 546.484ms
         const result = await this.shopCollection.insertOne(entity)
@@ -108,16 +113,18 @@ class ShopsRepository {
 export const shopRepository = new ShopsRepository()
 
 if (import.meta.vitest) {
+
     const { describe, expect, test, beforeEach } = import.meta.vitest
 
     beforeEach(async (context) => {
+
         await masterDataRepository.startupAsync()
         await shopRepository.startupAsync()
     })
 
     describe("#shop-repository.ts", () => {
 
-        const test1 = ".saveAsync <=> loadOneAsync, loadManyAsync"
+        const test1 = ".saveAsync, loadOneAsync, loadManyAsync"
         test.concurrent(test1, async () => {
             console.time(test1)
 

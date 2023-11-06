@@ -1,21 +1,16 @@
 import { ObjectId } from "mongodb"
 import { z } from "zod"
 import { fromZodError } from "zod-validation-error"
-import { util } from "../utils/util"
+import { util } from "@/libs/shared/utils/util"
 import { mongodbUtil } from "@/libs/server/core/db/mongodb/mongodb-util"
-import { Person, personConverter, PersonDtoSchema, PersonEntitySchema } from "./person"
-import { Product, productConverter, ProductDtoSchema, ProductEntitySchema } from "./product"
+import { appSettings } from "@/libs/appSettings"
 
 // https://zzdjk6.medium.com/typescript-zod-and-mongodb-a-guide-to-orm-free-data-access-layers-f83f39aabdf3
 
 export const BusinessUnitEntitySchema = z.object({
     _id: z.instanceof(ObjectId),
     name: z.string().max(100).min(3),
-    code: z.string().max(20).optional(),
-    persons: z.array(PersonEntitySchema).optional(),
-    products: z.array(ProductEntitySchema),
-    shopIds: z.array(z.instanceof(ObjectId)),
-    createdBy: z.string().max(100),
+    createdBy: z.instanceof(ObjectId),
     createdDate: z.date().default(util.utcNow()),
     updatedBy: z.string().max(100).optional(),
     updatedDate: z.date().default(util.utcNow()).optional(),
@@ -29,38 +24,23 @@ export type BusinessUnitEntity = z.infer<typeof BusinessUnitEntitySchema>
 
 // Application DTO
 export const BusinessUnitDTOSchema = z.object({
-    id: z.string().nullish(),
+    id: z.string().optional(),
     name: z.string().nullish(),
-    code: z.string().nullish(),
-    persons: z.array(PersonDtoSchema).nullish(),
-    products: z.array(ProductDtoSchema).nullish(),
-    shopIds: z.array(z.string()).optional(),
 })
 
 export type BusinessUnit = z.infer<typeof BusinessUnitDTOSchema>;
 
 export const businessUnitConverter = {
-    toEntity(dto: BusinessUnit): BusinessUnitEntity {
+    toEntity(dto: BusinessUnit, createdBy?: string): BusinessUnitEntity {
 
-        const persons: Person[] = dto.persons ?? []
-
-        const products: Product[] = dto.products ?? []
-
-        const shopIds: ObjectId[] = util.isArrEmpty(dto.shopIds) ?
-            [] :
-            dto.shopIds.map(id => new ObjectId(id))
-
-        const businessUnitEntity = {
+        const entity = {
             _id: mongodbUtil.genId(dto.id),
             name: dto.name,
-            code: dto.code,
-            persons: persons.map(p => personConverter.toEntity(p)),
-            products: products.map(p => productConverter.toEntity(p)),
-            createdBy: "",
-            shopIds
+            createdBy: createdBy ? mongodbUtil.genIdIfNotNil(createdBy) : mongodbUtil.genIdIfNotNil(appSettings.systemId)
         }
 
-        const result = BusinessUnitEntitySchema.safeParse(businessUnitEntity)
+        const result = BusinessUnitEntitySchema.safeParse(entity)
+
         if (result.success) {
             return result.data
             /* c8 ignore start */
@@ -73,16 +53,14 @@ export const businessUnitConverter = {
     },
 
     toDTO(entity: BusinessUnitEntity): BusinessUnit {
-        const businessUnitDTO: BusinessUnit = {
+
+        const dto: BusinessUnit = {
             id: entity._id.toHexString(),
-            name: entity.name,
-            code: entity.code,
-            persons: entity.persons?.map(p => personConverter.toDTO(p)),
-            products: entity.products?.map(p => productConverter.toDTO(p)),
-            shopIds: entity.shopIds.map(id => id.toHexString())
+            name: entity.name
         }
 
-        const result = BusinessUnitDTOSchema.safeParse(businessUnitDTO)
+        const result = BusinessUnitDTOSchema.safeParse(dto)
+
         if (result.success) {
             return result.data
             /* c8 ignore start */

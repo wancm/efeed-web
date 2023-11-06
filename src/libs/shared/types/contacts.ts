@@ -3,14 +3,12 @@ import { z } from "zod"
 import { fromZodError } from "zod-validation-error"
 
 export enum PhoneTypes {
-    Undefined = "Undefined",
     Primary = "Primary",
     Secondary = "Secondary",
     Fax = "Fax"
 }
 
 export enum AddressTypes {
-    Undefined = "Undefined",
     Primary = "Primary",
     Home = "Home",
     Office = "Office",
