@@ -4,6 +4,7 @@ import { fromZodError } from "zod-validation-error"
 import { util } from "@/libs/shared/utils/util"
 import { mongodbUtil } from "@/libs/server/data/mongodb/mongodb-util"
 import { appSettings } from "@/libs/appSettings"
+import { addressConverter, AddressDtoSchema, AddressEntitySchema } from "@/libs/shared/types/contacts"
 
 
 export const ShopEntitySchema = z.object({
@@ -12,6 +13,7 @@ export const ShopEntitySchema = z.object({
     name: z.string().max(100).min(3),
     personIds: z.array(z.instanceof(ObjectId)).optional(),
     productIds: z.array(z.instanceof(ObjectId)).optional(),
+    address: AddressEntitySchema,
     createdBy: z.instanceof(ObjectId),
     createdDate: z.date().default(util.utcNow()),
     updatedBy: z.string().max(100).optional(),
@@ -29,6 +31,7 @@ export const ShopDTOSchema = z.object({
     name: z.string().nullish(),
     personIds: z.array(z.string()).nullish(),
     productIds: z.array(z.string()).nullish(),
+    address: AddressDtoSchema.optional(),
 })
 
 export type Shop = z.infer<typeof ShopDTOSchema>;
@@ -44,6 +47,7 @@ export const shopConverter = {
             productIds: !util.isArrEmpty(dto.productIds) ?
                 dto.productIds.map(id => id.toObjectId())
                 : [],
+            address: addressConverter.toEntity(dto.address),
             createdBy: createdBy ? mongodbUtil.genIdIfNotNil(createdBy) : mongodbUtil.genIdIfNotNil(appSettings.systemId)
         }
 
@@ -66,7 +70,8 @@ export const shopConverter = {
             businessUnitId: entity.businessUnitId.toHexString(),
             name: entity.name,
             personIds: entity.personIds?.map(id => id.toHexString()),
-            productIds: entity.productIds?.map(id => id.toHexString())
+            productIds: entity.productIds?.map(id => id.toHexString()),
+            address: addressConverter.toDTO(entity.address)
         }
 
         const result = ShopDTOSchema.safeParse(dto)

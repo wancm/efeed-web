@@ -2,13 +2,14 @@ import { Collection, ObjectId, SortDirection } from "mongodb"
 import { appSettings } from "@/libs/appSettings"
 import "@/libs/shared/extensions"
 import { testHelper } from "@/libs/shared/utils/test-helper"
-import { masterDataRepository } from "./master-data-repository"
 import { Product, productConverter, ProductEntity } from "@/libs/shared/types/product"
 import { UrlTypes } from "@/libs/shared/types/image"
 import { MONGO_DB_CONSTANT } from "@/libs/server/data/mongodb/mongodb_const"
 import { appMongodb } from "@/libs/server/data/mongodb/mongodb-database"
+import { ProductRepository } from "@/libs/server/types/repositories/product-repository"
+import { MongodbMasterDataRepository } from "@/libs/server/data/repositories/mongodb-master-data-repository"
 
-class ProductRepository {
+export class MongoDbProductRepository implements ProductRepository {
 
     private isStartup = false
     private productCollection: Collection<ProductEntity>
@@ -103,17 +104,18 @@ class ProductRepository {
     }
 }
 
-export const productRepository = new ProductRepository()
-
 if (import.meta.vitest) {
     const { describe, expect, test, beforeEach } = import.meta.vitest
+
+    const masterDataRepository = new MongodbMasterDataRepository()
+    const productRepository = new MongoDbProductRepository()
 
     beforeEach(async (_) => {
         await masterDataRepository.startupAsync()
         await productRepository.startupAsync()
     })
 
-    describe("#product-repository.ts", () => {
+    describe("#product-repositories.ts", () => {
 
         const test1 = ".saveAsync, loadOneAsync, loadManyAsync"
         test(test1, async () => {

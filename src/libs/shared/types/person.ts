@@ -5,6 +5,7 @@ import { ObjectId } from "mongodb"
 import { util } from "@/libs/shared/utils/util"
 import { appSettings } from "@/libs/appSettings"
 import { contactConverter, ContactDtoSchema, ContactEntitySchema } from "@/libs/shared/types/contacts"
+import { BusinessUnit, BusinessUnitDTOSchema } from "@/libs/shared/types/business-unit"
 
 export enum PersonTypes {
     Undefined = "Undefined",
@@ -36,6 +37,7 @@ export type PersonEntity = z.infer<typeof PersonEntitySchema>
 export const PersonDtoSchema = z.object({
     id: z.string().optional(),
     businessUnitId: z.string(),
+    businessUnit: BusinessUnitDTOSchema.optional(),
     email: z.string().nullish(),
     password: z.string().nullish(),
     lastName: z.string().nullish(),

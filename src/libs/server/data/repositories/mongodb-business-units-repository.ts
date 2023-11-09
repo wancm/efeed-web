@@ -4,10 +4,10 @@ import { BusinessUnit, businessUnitConverter, BusinessUnitEntity } from "@/libs/
 import { testHelper } from "@/libs/shared/utils/test-helper"
 import { appMongodb } from "@/libs/server/data/mongodb/mongodb-database"
 import { MONGO_DB_CONSTANT } from "@/libs/server/data/mongodb/mongodb_const"
-import { masterDataRepository } from "@/libs/server/data/repositories/master-data-repository"
+import { MongodbMasterDataRepository } from "@/libs/server/data/repositories/mongodb-master-data-repository"
+import { BusinessUnitsRepository } from "@/libs/server/types/repositories/business-units-repository"
 
-
-class BusinessUnitsRepository {
+export class MongoDbBusinessUnitsRepository implements BusinessUnitsRepository {
 
     private isStartup = false
     private businessUnitCollection: Collection<BusinessUnitEntity>
@@ -91,17 +91,18 @@ class BusinessUnitsRepository {
     }
 }
 
-export const businessUnitRepository = new BusinessUnitsRepository()
-
 if (import.meta.vitest) {
     const { describe, expect, test, beforeEach } = import.meta.vitest
+
+    const businessUnitRepository = new MongoDbBusinessUnitsRepository()
+    const masterDataRepository = new MongodbMasterDataRepository()
 
     beforeEach(async () => {
         await masterDataRepository.startupAsync()
         await businessUnitRepository.startupAsync()
     })
 
-    describe("#Business Unit MongoDb repository save", () => {
+    describe("#Business Unit MongoDb repositories save", () => {
 
         //
         const test1 = ".saveAsync, loadOneAsync, loadManyAsync"

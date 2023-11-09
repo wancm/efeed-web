@@ -1,26 +1,29 @@
 import { z } from "zod"
-import { PersonTypes } from "@/libs/shared/types/person"
 import { BusinessUnit, BusinessUnitDTOSchema } from "@/libs/shared/types/business-unit"
-import { businessUnitRepository } from "@/libs/server/data/repositories/business-units-repository"
-import { fromZodError } from "zod-validation-error"
-import { appSettings } from "@/libs/appSettings"
-import { testHelper } from "@/libs/shared/utils/test-helper"
 import { ObjectId } from "mongodb"
-
+import { fromZodError } from "zod-validation-error"
+import { BusinessUnitsRepository } from "@/libs/server/types/repositories/business-units-repository"
+import { factory } from "@/libs/server/factory"
+import { testHelper } from "@/libs/shared/utils/test-helper"
+import { SessionService } from "@/libs/server/types/services/session-service"
+import { appSettings } from "@/libs/appSettings"
 
 const RegisterParamSchema = z.object({
     name: BusinessUnitDTOSchema.shape.name,
     admin: z.object({
-        lastName: z.string(),
+        lastName: z.string().optional(),
         email: z.string()
-    }),
-    savedBy: z.string()
+    })
 })
 
 type RegisterParam = z.infer<typeof RegisterParamSchema>
 
-class BusinessUnitAdmin {
-    //
+export class BusinessUnitFacade {
+
+    constructor(private readonly businessUnitRepository: BusinessUnitsRepository,
+                private readonly sessionService: SessionService) {
+    }
+
     async registerAsync(param: RegisterParam): Promise<ObjectId> {
 
         const result = RegisterParamSchema.safeParse(param)
@@ -35,38 +38,31 @@ class BusinessUnitAdmin {
 
         param = result.data
         const newBusinessUnit: BusinessUnit = {
-            name: param.name,
-            persons: [{
-                lastName: param.admin.lastName,
-                email: param.admin.email,
-                type: PersonTypes.Internal
-            }]
+            name: param.name
         }
 
-        return await businessUnitRepository
-            .saveAsync(newBusinessUnit, param.savedBy)
+        return await this.businessUnitRepository
+            .saveAsync(newBusinessUnit, appSettings.systemId)
     }
 }
 
-export const businessUnitAdmin = new BusinessUnitAdmin()
-
 if (import.meta.vitest) {
+    const { describe, expect, test, beforeEach } = import.meta.vitest
+    describe("#business-unit-facade.ts", () => {
 
-    const { describe, expect, test } = import.meta.vitest
-
-    describe("#business-unit-admin.ts", () => {
+        const facade = new BusinessUnitFacade(
+            factory.buildBusinessUnitRepository(),
+            factory.buildSessionService())
 
         const test1 = ".registerAsync()"
         test(test1, async () => {
             console.time(test1)
 
-            const objId = await businessUnitAdmin.registerAsync({
+            const objectId = await facade.registerAsync({
                 name: testHelper.generateRandomString(10),
                 admin: {
-                    lastName: testHelper.generateRandomString(5),
                     email: testHelper.generateRandomString(10)
-                },
-                savedBy: appSettings.systemId
+                }
             })
 
             console.timeEnd(test1)

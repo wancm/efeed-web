@@ -1,6 +1,7 @@
 import dayjs from "dayjs"
 import utc from "dayjs/plugin/utc"
 import { appSettings } from "@/libs/appSettings"
+import { v4 as uuidv4 } from "uuid"
 
 dayjs.extend(utc)
 
@@ -213,6 +214,10 @@ class Util {
     delay(ms: number): Promise<void> {
         // https://stackoverflow.com/questions/37764665/how-to-implement-sleep-function-in-typescript
         return new Promise(resolve => setTimeout(resolve, ms))
+    }
+
+    genId(): string {
+        return uuidv4()
     }
 }
 

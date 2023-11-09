@@ -4,13 +4,19 @@ import { MONGO_DB_CONSTANT } from "@/libs/server/data/mongodb/mongodb_const"
 import { appSettings } from "@/libs/appSettings"
 import "@/libs/shared/extensions"
 import { testHelper } from "@/libs/shared/utils/test-helper"
-import { masterDataRepository } from "./master-data-repository"
+import { MongodbMasterDataRepository } from "./mongodb-master-data-repository"
 import { Person, personConverter, PersonEntity, PersonTypes } from "@/libs/shared/types/person"
 import { AddressTypes, PhoneTypes } from "@/libs/shared/types/contacts"
 import { mongodbUtil } from "@/libs/server/data/mongodb/mongodb-util"
 import { util } from "@/libs/shared/utils/util"
+import { businessUnitConverter, BusinessUnitEntity } from "@/libs/shared/types/business-unit"
+import { PersonRepository } from "@/libs/server/types/repositories/person-repository"
+import { MongoDbBusinessUnitsRepository } from "@/libs/server/data/repositories/mongodb-business-units-repository"
 
-class PersonRepository {
+
+type PersonBusinessUnitEntity = PersonEntity & { businessUnit_docs: BusinessUnitEntity[] }
+
+export class MongoDbPersonRepository implements PersonRepository {
 
     private isStartup = false
     private personCollection: Collection<PersonEntity>
@@ -120,13 +126,30 @@ class PersonRepository {
 
     // https://stackoverflow.com/questions/73683048/find-if-a-value-is-not-present-in-array-of-objects-mongodb
     async findByEmailAsync(email: string): Promise<Person | undefined> {
-        const query = { "email": email }
 
-        const cursor = this.personCollection.find(query)
+        const pipeline = [
+            { $match: { "email": email } },
+            {
+                $lookup: {
+                    from: MONGO_DB_CONSTANT.COLLECTION_BUSINESS_UNITS,
+                    localField: "businessUnitId",
+                    foreignField: "_id",
+                    as: "businessUnit_docs"
+                }
+            }
+        ]
+
+        const aggCursor = this.personCollection.aggregate<PersonBusinessUnitEntity>(pipeline)
 
         const persons: Person[] = []
-        for await (const doc of cursor) {
-            persons.push(personConverter.toDTO(doc))
+        for await (const doc of aggCursor) {
+            const person = personConverter.toDTO(doc)
+
+            if (!util.isArrEmpty(doc.businessUnit_docs)) {
+                person.businessUnit = businessUnitConverter.toDTO(doc.businessUnit_docs[0])
+            }
+
+            persons.push(person)
         }
 
         return !util.isArrEmpty(persons) ? persons[0] : undefined
@@ -170,17 +193,19 @@ class PersonRepository {
     }
 }
 
-export const personRepository = new PersonRepository()
-
 if (import.meta.vitest) {
     const { describe, expect, test, beforeEach } = import.meta.vitest
+
+    const personRepository = new MongoDbPersonRepository()
+    const businessUnitRepository = new MongoDbBusinessUnitsRepository()
+    const masterDataRepository = new MongodbMasterDataRepository()
 
     beforeEach(async (context) => {
         await masterDataRepository.startupAsync()
         await personRepository.startupAsync()
     })
 
-    describe("#person-repository.ts", () => {
+    describe("#person-repositories.ts", () => {
 
         const test1 = ".saveAsync, loadOneAsync, loadManyAsync"
         test(test1, async () => {
@@ -236,6 +261,12 @@ if (import.meta.vitest) {
             console.time(test2)
 
             const businessUnitId = mongodbUtil.genId().toHexString()
+
+            await businessUnitRepository.saveAsync({
+                id: businessUnitId,
+                name: testHelper.generateRandomString(10)
+            }, appSettings.systemId)
+
             const email = `${testHelper.generateRandomString(5)}@${testHelper.generateRandomString(3)}.com`
 
             const mockPerson = async (): Promise<Person> => {
@@ -297,7 +328,7 @@ if (import.meta.vitest) {
                 }
             }
 
-            const counter = 2
+            const counter = 5
 
             for (let i = 0; i < counter; i++) {
                 const person = await mockPerson()

@@ -1,11 +1,13 @@
 import { util } from "@/libs/shared/utils/util"
+import { CacheService } from "@/libs/server/types/services/cache-service"
+import { json } from "stream/consumers"
 
 type LocalCache = {
     expired: number,
     data: any
 }
 
-class MemoryCacheService {
+export class MemoryCacheService implements CacheService {
 
     private readonly defaultTTL = 30 * 60 * 1000
     private readonly cacheExpiringInterval = 1000
@@ -19,26 +21,14 @@ class MemoryCacheService {
         /* c8 ignore end */
     }
 
-    /**
-     * Cache storing
-     * @param key key
-     * @param data data
-     * @param ttl time to live second(s). -1 if never expired
-     * @returns 1 if succeed
-     * @returns -1 if failed
-     */
+
     async trySetAsync(key: string, data: any, ttl: number = this.defaultTTL): Promise<number> {
         try {
-            let expired = -1
-
-            if (ttl > 0) {
-                const timestamp = util.timestampUtcNow()
-                expired = timestamp + (ttl * 1000)
-            }
+            let expired = this.getExpiryTimestamp(ttl)
 
             const cache: LocalCache = {
                 expired,
-                data
+                data: JSON.stringify(data)
             }
 
             this.cacheMap.set(key, cache)
@@ -52,27 +42,17 @@ class MemoryCacheService {
         }
     }
 
-    /**
-     * Cache retrieving
-     * @param key key
-     * @returns data
-     * @returns undefined if key not found
-     */
+
     async tryGetAsync<T>(key: string): Promise<T> {
 
         if (this.cacheMap.has(key)) {
-            return this.cacheMap.get(key).data as T
+            return JSON.parse(this.cacheMap.get(key).data)
         }
 
         return undefined as T
     }
 
-    /**
-     * Cache deleting
-     * @returns 1 if key deleted
-     * @returns 0 if key not found
-     * @returns -1 if failed
-     */
+
     async tryExpiredAsync(key: string): Promise<number> {
         try {
             if (this.cacheMap.has(key)) {
@@ -86,7 +66,29 @@ class MemoryCacheService {
         }
     }
 
-    private async cacheExpiringAsync() {
+    async extendExpiryAsync(key: string, ttl: number = this.defaultTTL): Promise<number> {
+        try {
+            if (this.cacheMap.has(key)) {
+                const data = this.cacheMap.get(key).data
+                await this.trySetAsync(key, data, ttl)
+                return 1
+            }
+            return 0
+
+        } catch (err) {
+            return -1
+        }
+    }
+
+    private getExpiryTimestamp(ttl: number): number {
+        if (ttl > 0) {
+            const timestamp = util.timestampUtcNow()
+            return timestamp + (ttl * 1000)
+        }
+        return -1
+    }
+
+    private async cacheExpiringAsync(): Promise<void> {
 
         const now = util.timestampUtcNow()
 
@@ -103,13 +105,12 @@ class MemoryCacheService {
             await this.cacheExpiringAsync()
         }, this.cacheExpiringInterval)
     }
-
 }
 
-export const cacheService = new MemoryCacheService()
 
 if (import.meta.vitest) {
     const { describe, expect, test, beforeEach } = import.meta.vitest
+    const memoryCacheService = new MemoryCacheService()
 
     beforeEach(async (_) => {
     })
@@ -122,9 +123,9 @@ if (import.meta.vitest) {
 
             const value = "value1"
 
-            await cacheService.trySetAsync(test1, value)
+            await memoryCacheService.trySetAsync(test1, value)
 
-            expect(await cacheService.tryGetAsync(test1)).toEqual(value)
+            expect(await memoryCacheService.tryGetAsync(test1)).toEqual(value)
 
             console.timeEnd(test1)
         })
@@ -135,13 +136,23 @@ if (import.meta.vitest) {
 
             const value = "value2"
 
-            await cacheService.trySetAsync(test2, value, 1)
+            await memoryCacheService.trySetAsync(test2, value, 1)
 
-            expect(await cacheService.tryGetAsync(test2)).toEqual(value)
+            expect(await memoryCacheService.tryGetAsync(test2)).toEqual(value)
 
             await util.delay(2000)
 
-            expect(await cacheService.tryGetAsync(test2)).toBeUndefined()
+            expect(await memoryCacheService.tryGetAsync(test2)).toBeUndefined()
+
+            await memoryCacheService.trySetAsync(test2, value, 1)
+
+            // extend 1 more sec
+            memoryCacheService.extendExpiryAsync(test2, 2)
+
+            await util.delay(2000)
+
+            // expect the cache is still there after 1.5 sec
+            expect(await memoryCacheService.tryGetAsync(test2)).not.toBeUndefined()
 
             console.timeEnd(test2)
         })
@@ -152,9 +163,9 @@ if (import.meta.vitest) {
 
             const value = "value3"
 
-            await cacheService.trySetAsync(test3, value, -1)
+            await memoryCacheService.trySetAsync(test3, value, -1)
 
-            expect(await cacheService.tryGetAsync(test3)).toEqual(value)
+            expect(await memoryCacheService.tryGetAsync(test3)).toEqual(value)
 
             await util.delay(2000)
 

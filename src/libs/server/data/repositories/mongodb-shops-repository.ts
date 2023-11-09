@@ -5,9 +5,10 @@ import { testHelper } from "@/libs/shared/utils/test-helper"
 import { appMongodb } from "@/libs/server/data/mongodb/mongodb-database"
 import { MONGO_DB_CONSTANT } from "@/libs/server/data/mongodb/mongodb_const"
 import "@/libs/shared/extensions"
-import { masterDataRepository } from "@/libs/server/data/repositories/master-data-repository"
+import { ShopsRepository } from "@/libs/server/types/repositories/shops-repository"
+import { MongodbMasterDataRepository } from "@/libs/server/data/repositories/mongodb-master-data-repository"
 
-class ShopsRepository {
+export class MongoDbShopsRepository implements ShopsRepository {
 
     private isStartup = false
     private shopCollection: Collection<ShopEntity>
@@ -57,7 +58,13 @@ class ShopsRepository {
             console.log(`${MONGO_DB_CONSTANT.COLLECTION_SHOPS} db collection indexes created: ${indexCreatedResult3} `)
 
             const indexCreatedResult4 = await this.shopCollection.createIndex({
-                name: "text"
+                name: "text",
+                "address.line1": "text",
+                "address.line2": "text",
+                "address.line3": "text",
+                "address.state": "text",
+                "address.city": "text",
+                "address.countryCode": "text",
             }, { name: "name_text" })
 
             console.log(`${MONGO_DB_CONSTANT.COLLECTION_SHOPS} db collection indexes created: ${indexCreatedResult4} `)
@@ -110,11 +117,12 @@ class ShopsRepository {
     }
 }
 
-export const shopRepository = new ShopsRepository()
-
 if (import.meta.vitest) {
 
     const { describe, expect, test, beforeEach } = import.meta.vitest
+
+    const masterDataRepository = new MongodbMasterDataRepository()
+    const shopRepository = new MongoDbShopsRepository()
 
     beforeEach(async (context) => {
 
@@ -122,23 +130,25 @@ if (import.meta.vitest) {
         await shopRepository.startupAsync()
     })
 
-    describe("#shop-repository.ts", () => {
+    describe("#shop-repositories.ts", () => {
 
         const test1 = ".saveAsync, loadOneAsync, loadManyAsync"
         test(test1, async () => {
             console.time(test1)
 
-            const countryCode = "MY"
             const businessUnitId = new ObjectId().toHexString()
 
-            const countries = await masterDataRepository.loadCountriesAsync()
-            const malaysia = countries.find(c => c.code.isEqual(countryCode))
+            const personId = new ObjectId().toHexString()
+            const personId2 = new ObjectId().toHexString()
 
             const mock = async () => {
                 return {
                     name: testHelper.generateRandomString(10),
                     businessUnitId,
-                    persons: [testHelper.mockPerson(malaysia)]
+                    persons: [personId, personId2],
+                    address: {
+                        countryCode: 'MY'
+                    }
                 }
             }
 
